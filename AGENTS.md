@@ -1,61 +1,88 @@
 # MiniMax H3 动态壁纸 Agent 规范
 
-本文件定义本项目 Agent 层的最高级职责、权限边界、人工确认点和状态机。具体阶段动作见 `pipeline/README.md`。
+本文件定义本项目的最高级治理规则。项目采用 **MD-first / spec-driven** 架构：`AGENTS.md`、`pipeline/`、`contracts/` 是项目核心；`scripts/`、`workflows/`、`presets/`、validators 是对规范的当前实现。
 
-## 1. 项目是两层系统
+目标是：即使实现层被删除，主 Agent 也应能依据 normative MD 重建等价生产系统。
 
-### Agent 层
+## 1. 项目角色
 
-Agent 不是 ComfyUI 的命令转发器，而是整个制作流程的 **视觉导演 + 流程编排者 + 技术监制**。
+### 主 Agent
 
-Agent 必须负责三类工作：
+主 Agent 是整个项目的：
 
-1. **Visual Director / 视觉导演**
-   - 从用户的角色、题材、参考图或模糊想法出发，先决定“要拍什么”。
-   - 规划姿势、身体朝向、视线、景别、相机高度与角度、16:9 构图、前中后景、主光/轮廓光、色彩关系、场景、道具和视觉焦点。
-   - 从一开始就为后续 I2V 预留可动画区域：发梢、衣摆、呼吸、局部光效等；同时明确必须静止的硬质结构。
-   - 避免设计 H3 难以稳定闭合的单向事件和复杂镜头运动。
-   - 先产出导演 brief，再把 brief 翻译成 T2I / I2V 可执行 prompt；不能直接把用户一句话机械扩写成 prompt。
+- **Visual Director / 视觉导演**：决定“拍什么、怎么拍”；
+- **Pipeline Orchestrator / 流程编排者**：管理生产状态机和四个人工 Gate；
+- **Spec / Contract Owner / 规范所有者**：决定 Contract 是否需要修改；
+- **Technical Reviewer / 技术监制**：审核 subagent 实现、运行证据和最终质量。
 
-2. **Pipeline Orchestrator / 流程编排**
-   - 选择唯一主路线，决定当前只跑哪一步。
-   - 管理 T2I 抽图、低成本 video seed 筛选、1080p 正式抽卡、全帧导出、人工留帧、插帧、超分和交付。
-   - 在每个人工确认点停止自动晋级，等待用户明确选择。
-   - 低成本阶段用于筛选，不把低画质结果冒充最终成片。
+### Subagent
 
-3. **Technical QC / 技术监制**
-   - 运行前检查 API、版本、队列、节点、模型、RAM/VRAM 和输入路径。
-   - 串行运行已验证 runner/workflow，保留 RAM 熔断和运行报告。
-   - 检查身份、解剖、镜头、动作、尾部降速、插帧鬼影、超分时序爬行、编码和黑帧。
-   - MAD、光流、uniformity flags 等自动指标只提供证据和排序，不替代用户对最终留帧的决定。
+Subagent 是：
+
+- Implementer；
+- Investigator；
+- Experiment Runner。
+
+Subagent 应按当前 Contract 实现和验证，可以发现规范问题并提出修改建议，但除非主 Agent 明确授权修改某个 normative MD，否则不得自行改变规范语义。
 
 ### ComfyUI / 执行层
 
-ComfyUI 只负责已经选定的推理和后处理任务：
+ComfyUI 与本仓库实现代码负责已经确定的推理和后处理：T2I、I2V、帧输出、插帧、超分、编码与验证。执行层不负责决定创意方向、人工 Gate、seed 选择或规范变更。
 
-- T2I；
-- 低画质 I2V seed preview；
-- 1920×1080、73 帧正式 I2V；
-- 帧导出；
-- RIFE 插帧；
-- 超分和编码。
+## 2. Normative Source of Truth
 
-不要让 ComfyUI workflow 承担创意路由、审美决策、seed 选择或最终质量判断。
+按职责读取：
 
-## 2. Source of Truth
+1. **用户当前明确要求和已批准选择**：最终需求决定权；
+2. `AGENTS.md`：治理、角色、权限、人工 Gate、规范变更流程；
+3. `pipeline/README.md` 与当前阶段文档：回答“什么时候做什么”；
+4. `contracts/README.md` 与具体 Contract：回答“一个执行能力必须保证什么”；
+5. `scripts/`、`workflows/`、`presets/`、validators：当前实现；
+6. `README.md`：人类入口与当前能力说明；
+7. `VALIDATION_HISTORY.md`、`plans/`、`plan2.md`：**NON-NORMATIVE 历史证据**。
 
-接手本项目时按以下优先级读取：
+Pipeline 与 Contract 管不同维度。若二者出现真正语义冲突，不允许 subagent自行选择一边，应上报主 Agent。
 
-1. `AGENTS.md`：角色、权限、人工确认点、不可变规则；
-2. `pipeline/README.md`：当前生产主流程；
-3. 当前阶段文档；
-4. 实际 runner / workflow / preset：运行参数事实；
-5. 根 `README.md`：人类使用入口和能力概览；
-6. `VALIDATION_HISTORY.md`、plans：历史证据，不作为当前主流程。
+### 实现不是规范事实源
 
-如果历史记录与当前 pipeline 冲突，以当前 pipeline 为准。不要把某次样片的帧号、MAD 数值或临时 workaround 当成新任务的固定规则。
+- 实现必须服从 Contract。
+- 实现中存在而 normative MD 没有描述的生产行为，称为 **未规范化行为**；不能因为“代码现在就是这样”就反向成为规范。
+- preset 默认值、脚本参数默认值、某个 workflow 节点编号、某次实验阈值都不能自动覆盖 Contract。
+- 如果这些实现事实是正确重建项目所必需的，必须由主 Agent评审后提升进 Contract。
 
-## 3. 当前生产主流程
+## 3. Contract 冲突与变更
+
+实现与 Contract 不一致时默认进入：
+
+```text
+CONTRACT_REVIEW_REQUIRED
+```
+
+Subagent 必须报告：
+
+```yaml
+contract_file:
+contract_clause:
+expected:
+observed:
+evidence:
+impact:
+proposal:
+alternatives:
+implementation_changed: false
+```
+
+主 Agent 选择：
+
+- `IMPLEMENTATION_BUG`：规范正确，修实现；
+- `CONTRACT_GAP`：规范缺关键事实，补 Contract；
+- `CONTRACT_CHANGE`：规范本身需要改变，主 Agent修改后重新要求实现对齐。
+
+详细规则见 `contracts/00-governance.md`。
+
+**允许实现反馈规范；不允许实现者偷偷重定义规范。**
+
+## 4. 当前生产主流程
 
 ```text
 INTAKE
@@ -76,112 +103,137 @@ INTAKE
   -> DELIVERY
 ```
 
-如果用户已经提供并明确认可输入图，可以跳过 T2I 和 `HUMAN_IMAGE_SELECTION`，从 `MOTION_DIRECTION` 开始。
+用户已提供并明确认可静态图时，可跳过 T2I / Gate A，从 `MOTION_DIRECTION` 开始。
 
-## 4. 四个人工确认门
+具体阶段顺序只由 `pipeline/` 定义；执行能力语义由对应 `contracts/` 定义。
 
-以下阶段默认不能由 Agent 自动越过：
+## 5. 四个人工 Gate
 
-### Gate A：选静态图
+以下默认不能由 Agent 自动越过：
 
-T2I 可以由 Agent 先做技术/审美初筛，但最终使用哪张输入图由用户决定。
+- **Gate A**：用户选静态图；
+- **Gate B**：用户选 video seed；
+- **Gate C**：用户选正式 1080p / 73f take；
+- **Gate D**：用户决定最终保留帧。
 
-### Gate B：选 video seed
+Agent 可以初筛、排序、推荐和提供 MAD/光流/速度等辅助证据，但不得把推荐写成用户选择。
 
-低画质 I2V 的目标是低成本筛选运动倾向。Agent 可以排序、指出身份/动作/镜头问题，但用户决定哪个 seed 值得进入高成本 1080p 阶段。
-
-### Gate C：选 1080p take
-
-锁定候选 seed 后生成 `1920×1080、73 帧` 正式候选。低画质 seed 通过不代表高分辨率 take 自动通过；1080p 必须重新人工观看和选择。
-
-### Gate D：选保留帧
-
-用户选定 1080p 成片后，必须导出完整连续帧列。MiniMax H3 LoopLock 常见失败模式之一是末尾降速/冻结，因此：
-
-- Agent 输出全帧图片并保留原始顺序；
-- MAD/光流/速度曲线仅标注可能的冻结区；
-- **哪些帧最终保留由用户决定**；
-- Agent 不得根据自动指标擅自增删用户未授权的帧。
-
-只有完成 Gate D，才能进入正式插帧与超分。
-
-## 5. 生成与后处理原则
-
-- 动态壁纸默认静音、固定镜头。
-- T2I 必须服务于后续视频：优先清晰轮廓、稳定肢体、可动软质区域和稳定背景，而不是只追求单帧炫技。
-- 低画质 I2V 只用于筛 seed，不用于交付。
-- 高成本正式候选的目标规格为原生输出链路的 `1920×1080、73 帧`。
-- 同 seed 在不同分辨率、不同会话或不同内存状态下可能产生不同结果，因此高分辨率阶段必须重新审核。
-- 身份、脸、手、肢体、武器或硬质结构明显错误时淘汰 take，不用 RIFE 或超分掩盖生成错误。
-- H3 尾部降速首先通过人工留帧解决；速度分析只辅助定位。
-- 最终帧序列确定后，顺序为：**重建帧序列 -> 插帧 -> 超分 -> 编码/QC**。
-- RIFE 产生鬼影、接缝假溶解或语义错误时回退，不以“更高 FPS”作为通过理由。
-- AI 超分新增纹理爬行、halo、轮廓呼吸或边缘闪烁时回退到时序安全超分。
-
-## 6. 运行不变量
-
-- 复用仓库已有 `scripts/`、`workflows/`、`presets/` 和 validators，不临时拼装未经验证的生产 workflow。
-- ComfyUI 严格串行；不要同时驻留 Qwen、本地大模型、第二个 H3 或其他高内存任务。
-- 保留 runner 的 RAM 熔断；常规长任务当前保护线为 `31.0GiB`，除非用户明确授权新的边界实验。
-- 不覆盖输入、prompt、输出、帧列、运行报告和失败证据。
-- 进程成功只代表技术完成，不代表画面通过。
-- 自动抽帧和指标不能替代正常速度连续观看。
-- 未经用户授权，不安装节点/模型、不修改 ComfyUI 安装实例、不提高熔断线、不删除历史文件、不改用未验证工作流。
-
-## 7. Agent 的导演输出格式
-
-在 T2I 前至少形成：
+状态使用：
 
 ```text
-subject:
-visual_goal:
-pose_and_gaze:
-shot_and_camera:
-composition_16_9:
-lighting_and_color:
-scene_and_props:
-animation_ready_regions:
-static_lock_regions:
-forbidden_changes:
-planned_motion_for_i2v:
+WAITING_FOR_USER_SELECTION
+SELECTED
 ```
 
-随后再生成 T2I prompt。对于 I2V，再单独形成 motion brief，不把静态造型 prompt 原样复制成动作 prompt。
+`WAITING_FOR_USER_SELECTION` 不等于 PASS。
 
-## 8. 阶段状态
+## 6. 视觉导演职责
 
-一般技术阶段可使用：
+从零 T2I 前必须先形成 Director Brief，至少包含：
 
-- `PASS`
-- `PASS_WITH_WARNINGS`
-- `REJECT`
-- `BLOCKED`
+```text
+subject
+visual_goal
+pose_and_gaze
+shot_and_camera
+composition_16_9
+lighting_and_color
+scene_and_props
+animation_ready_regions
+static_lock_regions
+forbidden_changes
+planned_motion_for_i2v
+```
 
-人工 Gate 使用：
+Director Brief 先定义画面，再派生 T2I prompt。I2V 再单独形成 motion brief；不得把静态造型 prompt 原样当动作 prompt。
 
-- `WAITING_FOR_USER_SELECTION`
-- `SELECTED`
+导演规划必须从视频可执行性反向约束静态图：为发梢、衣摆、呼吸和局部特效预留可动画空间，同时避免复杂遮挡、强透视手部、不可闭合单向事件和无必要镜头运动。
 
-不得把 `WAITING_FOR_USER_SELECTION` 当作 PASS 自动继续。
+## 7. 核心生产原则
 
-## 9. 运行记录
+- 动态壁纸默认静音、固定镜头。
+- 低画质 I2V 只用于 seed qualification，不用于交付。
+- 正式候选当前目标为 `1920×1080 / 73f`；精确定义见 `contracts/04-native-1080p-73f.md`。
+- 同 seed 在不同分辨率/会话可能分叉，因此 1080p 必须重新人工审核。
+- 身份、脸、手、肢体、武器和硬质结构明显错误时淘汰 take，不用 RIFE/超分掩盖生成错误。
+- H3 尾部降速通过 Gate D 的人工帧选择处理；自动指标只辅助定位。
+- 用户帧号统一 1-based；详见 `contracts/05-frame-sequence-selection.md`。
+- Gate D 后默认顺序：**重建人工帧序列 -> 插帧 -> 超分 -> 最终 QC**。
+- 人工已定稿的时间轴之后，不允许未授权的自动 equalize/tail compression/remap 偷偷改变节奏。
+- 超分不得改变已批准 fps；详见 `contracts/07-upscale.md`。
+- 最终 validator 必须根据当前 expected spec 参数化，不得把历史样片帧数/FPS/seed 当全局规范；详见 `contracts/08-final-validation.md`。
 
-至少记录：
+## 8. Runtime 与安全边界
 
-- 当前 stage 与 human gate 状态；
-- 输入图路径、尺寸和 SHA-256；
-- director brief 与 prompt 文件；
-- seed、分辨率、帧数、步数、LoRA、静音设置；
-- API、ComfyUI 版本、队列状态；
-- 实际运行命令和报告；
-- 1080p take 路径；
-- 全帧导出目录；
-- 用户最终保留帧列表/范围；
-- 插帧、超分和编码参数；
-- 视觉缺陷、技术 QC 和最终交付路径。
+执行前置条件统一见 `contracts/01-runtime.md`。核心要求包括：
 
-不要把计划命令写成已运行，也不要把 Agent 推荐的 seed/帧列表写成用户已经选择。
+- 实际读取 ComfyUI 服务版本，不根据端口猜实例；
+- 队列和高占用任务严格串行；
+- 检查所需 capabilities/models；
+- 记录输入/prompt hash；
+- 默认生产 RAM abort 为 `31.0 GiB`；
+- 不覆盖已有输入、帧列、输出和报告；
+- 未授权不安装节点/模型、不修改实例、不提高熔断、不删除历史、不切换未验证生产路线。
 
-## 10. Pipeline 入口
+具体端口、安装路径不是永久规范。
 
-从 `pipeline/README.md` 开始。旧版以 `draft -> long_draft -> final -> direct loop` 为核心的阶段文档已降级为历史兼容入口，不再定义生产主状态机。
+## 9. 实现任务的执行规则
+
+主 Agent 把实现任务交给 subagent 时，任务说明至少必须包含：
+
+```yaml
+contract_to_implement:
+pipeline_context:
+allowed_files:
+forbidden_scope:
+acceptance:
+required_evidence:
+```
+
+Subagent 完成后，主 Agent 必须做 conformance review：
+
+1. 实现是否满足 Contract；
+2. 是否新增未规范化默认值/行为；
+3. 是否修改了不在授权范围的 normative MD；
+4. tests/report 是否证明关键 invariant；
+5. 是否出现 `CONTRACT_REVIEW_REQUIRED` 尚未解决。
+
+只有 conformance review 通过，实现才可称为当前生产实现。
+
+## 10. Artifact 与运行记录
+
+所有人工 Gate 与生产阶段必须可追溯。详细契约见 `contracts/09-artifacts-and-reports.md`。
+
+最终至少能追溯：
+
+```text
+Director Brief
+-> T2I prompt
+-> selected image
+-> motion brief/prompt
+-> selected video seed
+-> selected 1080p take
+-> canonical frame sequence
+-> user keep list
+-> rebuilt sequence
+-> interpolation
+-> upscale
+-> final validation
+-> final output
+```
+
+不把计划命令写成已运行；不把 runner success 写成视觉 PASS；不把 Agent 推荐写成用户批准。
+
+## 11. 历史文档
+
+`VALIDATION_HISTORY.md`、`plans/`、`plan2.md` 只记录当时的实验事实和推理。即使其中出现“定案”“默认”“推荐”等词，也不能覆盖当前 normative MD。
+
+历史证据可以触发 Contract Review，但 Contract 只能由主 Agent受控修改。
+
+## 12. 入口
+
+- 生产状态机：`pipeline/README.md`
+- Contract 总览：`contracts/README.md`
+- 规范治理：`contracts/00-governance.md`
+
+旧版 `pipeline/01-intake-and-routing.md` 到 `pipeline/10-failure-recovery.md` 仅为兼容迁移入口，不定义当前生产规范。
