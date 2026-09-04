@@ -1,5 +1,10 @@
 # MiniMax H3 本地视频工作流
 
+> [!CAUTION]
+> **18+ / Adults Only.** 本仓库包含成人内容（NSFW LoRA，HMNSFW-AIO-V2.5）的工作流、下载器与提示词模板。仅供已达到法定成年年龄的用户在符合当地法律的前提下使用。未成年人请离开。
+>
+> **18+ / Adults Only.** This repository contains workflows, downloaders, and prompt templates for adult content (NSFW LoRA, HMNSFW-AIO-V2.5). Intended only for users who have reached the age of majority, in compliance with local laws.
+
 本项目是一套已经在 **RTX 5080 16GB + 32GB 系统内存**上实跑验证的 MiniMax H3 / ComfyUI 本地工作流，覆盖：
 
 - H3 伪文生图（5 帧短时序包抽取单帧）；
