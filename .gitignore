@@ -57,3 +57,15 @@ scripts/screen_h3_loop_candidates.py
 # Python cache
 __pycache__/
 *.pyc
+
+# Skill pack copy (network-disk version), not part of the pipeline
+MiniMax-H3-Skills-网盘版/
+
+# Legacy UI workflow, superseded by workflows/ui/
+动态壁纸工作流/
+
+# Generic ComfyUI payload submitter, superseded by profile runners
+scripts/run_h3_generate.py
+
+# Keyframe VFI builder for the deprecated keqing mirror route
+scripts/build_keqing_vfi_keyframes.py
