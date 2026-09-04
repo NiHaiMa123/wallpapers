@@ -31,6 +31,21 @@ Director Brief
 
 已有并被用户认可的输入图可以跳过 T2I / Gate A。
 
+## Runtime Preflight 是执行前置条件，不是独立创意阶段
+
+任何会实际提交 ComfyUI 或高占用后处理的 `EXECUTE` 动作，在提交前都必须确认：
+
+- 目标 API 可达且实际版本正确；
+- 队列为空；
+- required nodes / models 可用；
+- 输入存在且路径/哈希正确；
+- RAM / VRAM 有足够余量；
+- 没有 Qwen、LLM、第二个 H3 或冲突重负载；
+- 输出和报告使用唯一名称；
+- runner 的 RAM 熔断保持启用。
+
+PLAN、纯导演设计和纯提示词任务不需要为了形式执行 runtime preflight。
+
 ## 人工 Gate 契约
 
 人工 Gate 的状态不是 `PASS`，而是：
