@@ -1,13 +1,15 @@
 # 00 执行契约
 
-本文件是当前 pipeline 的统一入口。具体角色定义以根 `AGENTS.md` 为准。
+本文件是当前 pipeline 的统一入口。治理与规范变更权限以根 `AGENTS.md` 和 `../contracts/00-governance.md` 为准；runtime 细节统一见 `../contracts/01-runtime.md`。
 
 ## 工作模式
 
-- `PLAN`：只做导演方案、路线、prompt、seed 策略和验收计划，不提交 ComfyUI。
-- `DIAGNOSE`：分析已有输入、输出和报告，不自动扩展成新生成任务。
-- `REVIEW`：检查候选并给出技术/视觉结论，不替用户越过人工 Gate。
+- `PLAN`：导演方案、路线、prompt、seed 策略和验收计划；不提交高占用任务。
+- `DIAGNOSE`：分析已有输入、输出、reports 和实现一致性。
+- `REVIEW`：审候选或审实现，不替用户越过人工 Gate。
 - `EXECUTE`：运行当前最小且有意义的生产阶段。
+- `IMPLEMENT`：按指定 Contract 修改 scripts/workflows/presets/tests；通常交给 subagent。
+- `SPEC_REVIEW`：主 Agent处理 `CONTRACT_REVIEW_REQUIRED`，决定修实现还是修改规范。
 
 ## 当前主路线
 
@@ -20,8 +22,8 @@ Director Brief
   -> Gate B 用户选 seed
   -> 1080p / 73f Take
   -> Gate C 用户选 take
-  -> Export All Frames
-  -> Gate D 用户选 keep frames
+  -> Canonical Frame Sequence
+  -> Gate D 用户选 1-based keep frames
   -> Rebuild
   -> Interpolate
   -> Upscale
@@ -31,91 +33,114 @@ Director Brief
 
 已有并被用户认可的输入图可以跳过 T2I / Gate A。
 
-## Runtime Preflight 是执行前置条件，不是独立创意阶段
+## Runtime Preflight
 
-任何会实际提交 ComfyUI 或高占用后处理的 `EXECUTE` 动作，在提交前都必须确认：
+任何实际生成或高占用后处理在提交前都必须满足 `../contracts/01-runtime.md`。
 
-- 目标 API 可达且实际版本正确；
-- 队列为空；
-- required nodes / models 可用；
-- 输入存在且路径/哈希正确；
-- RAM / VRAM 有足够余量；
-- 没有 Qwen、LLM、第二个 H3 或冲突重负载；
-- 输出和报告使用唯一名称；
-- runner 的 RAM 熔断保持启用。
+Pipeline 不再维护端口/版本绑定、节点清单、RAM 细节副本。若实现需要的新运行事实没有写入 Runtime Contract，应进入 Contract Review，而不是只写进 runner。
 
-PLAN、纯导演设计和纯提示词任务不需要为了形式执行 runtime preflight。
+## 人工 Gate
 
-## 人工 Gate 契约
+Agent 可以初筛、排序、推荐和提供自动分析证据，但不能代替用户：
 
-人工 Gate 的状态不是 `PASS`，而是：
+- 选静态图；
+- 选 video seed；
+- 选正式 1080p take；
+- 定最终 keep list。
+
+人工 Gate 使用：
 
 ```text
 WAITING_FOR_USER_SELECTION
 SELECTED
 ```
 
-Agent 可以：
+## Contract Conformance
 
-- 初筛明显错误候选；
-- 排序；
-- 给推荐；
-- 提供 MAD/光流/速度等辅助证据。
+生产执行前，Agent 应知道本阶段对应哪个 Contract。
 
-Agent 不可以：
+实现/运行出现以下情况时不得直接继续：
 
-- 自己代替用户最终选静态图；
-- 自己代替用户最终选 video seed；
-- 自己代替用户最终选 1080p take；
-- 根据自动速度指标擅自决定最终留删帧。
+- 当前脚本默认值与 Contract 不同；
+- 当前 workflow 缺少 Contract 要求的语义；
+- preset 限制导致 Contract 目标无法表达；
+- validator 写死历史样片规格；
+- 需要新增关键实现事实才能正确重建项目。
+
+这些情况进入：
+
+```text
+CONTRACT_REVIEW_REQUIRED
+```
+
+Subagent 只上报证据和 proposal；主 Agent作为 Spec Owner 决定：
+
+```text
+IMPLEMENTATION_BUG
+CONTRACT_GAP
+CONTRACT_CHANGE
+```
 
 ## 全局执行规则
 
-- 同一时刻只跑一个生产任务。
-- 复用已验证 runner/workflow/preset，不临时拼装生产工作流。
-- 默认静音和固定镜头。
-- 常规长任务保留 `31.0GiB` RAM 熔断。
-- 不覆盖输入、prompt、视频、帧列、报告或失败证据。
-- 进程成功不等于视觉通过。
-- 低画质 seed 通过不等于 1080p take 通过。
-- 自动分析不等于用户留帧决定。
-- 身份/解剖/硬质结构生成错误回到生成阶段，不交给插帧或超分修复。
+- 同时只跑一个生产重任务；
+- 不覆盖输入、prompt、视频、canonical frame sequence、人工 manifest、报告和失败证据；
+- 动态壁纸默认静音、固定镜头；
+- 进程成功不等于视觉通过；
+- 低画质 seed 通过不等于 1080p take 通过；
+- 自动分析不等于用户选择；
+- 生成结构错误回生成阶段，不交给后处理掩盖；
+- Gate D 后不允许未授权自动 equalize/remap 改变用户已批准时间轴；
+- 具体 artifacts/report 规则见 `../contracts/09-artifacts-and-reports.md`。
 
 ## 禁止自动扩展
 
-没有用户额外授权时，不执行：
+没有额外授权时不执行：
 
-- 下载模型或安装节点；
+- 安装新节点/模型；
 - 修改 ComfyUI 实例/安装目录；
-- 提高 RAM 熔断；
-- 删除或覆盖历史文件；
-- 切换到仓库未验证的工作流；
-- 运行负对照或高风险边界实验。
+- 提高生产 RAM abort；
+- 删除/覆盖历史文件；
+- 切换未验证生产 workflow；
+- 运行边界/负对照实验；
+- subagent 自行修改 normative MD 以适配自己的实现。
 
 ## 完成契约
 
 ### 规划任务
 
-交付：Director Brief、主路线、T2I/I2V prompt 方案、seed 筛选策略、人工 Gate、风险。
+交付 Director Brief、路线、prompt/motion 方案、seed 策略、人工 Gate、相关 Contract 和风险。
 
-### 执行任务
+### 实现任务
 
-交付必须能追溯：
+交付：
+
+```yaml
+contract_implemented:
+files_changed:
+tests_or_evidence:
+new_unstandardized_behavior: none | details
+contract_review_required: false | details
+conformance_result:
+```
+
+### 生产执行任务
+
+必须能追溯：
 
 ```text
 Director Brief
 -> selected image
 -> selected video seed
 -> selected 1080p take
+-> canonical frames
 -> user keep list
 -> interpolation
 -> upscale
--> final QC
+-> final validation
 -> final output
 ```
 
-不得把 Agent 推荐写成用户已选择，也不得把未执行的命令写成已完成。
-
 ## 下一阶段
 
-从 `01-intake-and-director.md` 开始。
+从 `01-intake-and-director.md` 开始；实现某能力时先读取对应 `../contracts/*.md`。
