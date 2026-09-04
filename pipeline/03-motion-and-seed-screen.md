@@ -1,14 +1,14 @@
 # 03 动作导演与低画质 Seed 筛选
 
-本阶段的目标是：固定已选静态图，先以低成本 I2V 找到值得投资的 video seed。
+本阶段负责：根据已选静态图形成 motion brief，用低成本 I2V 比较 video seed，并完成 Gate B。
 
-## 先做动作导演
+执行契约：`../contracts/03-lowres-i2v-seed.md`
 
-Agent 根据已选图重新做 motion brief，而不是把 T2I prompt 直接复制给视频模型。
+## Motion Brief
 
 至少定义：
 
-```text
+```yaml
 input_image:
 identity_lock:
 primary_motion_systems:
@@ -18,53 +18,46 @@ loop_intent:
 forbidden_motion:
 ```
 
-默认原则：
+Motion Brief 必须针对视频运动重新设计，不把 T2I prompt 原样复制过来。
 
-- 固定镜头和焦距；
-- 只允许 2–3 个主要运动系统；
-- 优先低幅呼吸、眨眼、发梢/衣摆、小范围局部光效；
-- 水晶、武器、建筑、地面等硬质结构保持稳定；
-- 避免持续单向飞离画面的粒子或不可闭合事件。
+## Seed Screen
 
-## 低画质 Seed Screen
+按 Contract 执行：
 
-1. 固定输入图、motion prompt、LoRA 和其他主要参数。
-2. 只改变 video seed。
-3. 使用仓库当前验证的低成本 I2V preview 路线；Turbo 可用时用于快速排序，缺失时使用小规模标准低分辨率 preview。
-4. 建议一次筛 5–8 个 seed。
-5. Agent 做第一轮技术/视觉排序，重点检查：
-   - 身份和脸；
-   - 手、肢体和道具；
-   - 镜头是否漂移；
-   - 动作幅度和方向；
-   - 背景/硬质结构稳定性；
-   - 是否值得进入高成本 1080p 抽卡。
+- 固定输入图、motion prompt、LoRA/主要运动语义；
+- 比较 seed 时保持单轴；
+- 使用低成本路线筛选，明确标记 `screening_only`；
+- Agent 可以淘汰明显身份/解剖/镜头/硬质结构错误并排序；
+- 低画质结果不承担最终尾部速度和最终画质保证。
 
-低画质阶段 **不负责最终尾部速度和最终画质定稿**。不同分辨率和不同会话下，同 seed 可能分叉。
+如粗筛执行器与正式生成语义差异明显，是否增加标准低分辨率确认由主 Agent决定，不能由 subagent偷偷永久增加/删除 pipeline 阶段。
 
-## Gate B：人工选 Seed
-
-Agent 给出 seed 排名、淘汰理由和推荐，但必须进入：
+## Gate B
 
 ```text
 WAITING_FOR_USER_SELECTION
 ```
 
-由用户明确指定进入原生 1080p 阶段的 seed。
+用户选定后记录：
 
-记录：
-
-```text
+```yaml
 selected_video_seed:
-lowres_reference_output:
+selected_lowres_reference:
 selection_notes:
 status: SELECTED
 ```
 
-## 单轴原则
+## 本阶段不重复定义
 
-比较 seed 时保持其他变量不变。若需要判断 prompt 问题，另起同 seed / 单一 prompt 变量对照，不同时修改多轴。
+- Turbo 具体节点；
+- 固定 steps/profile 名称；
+- 正式 1080p 内部尺寸；
+- 最终 Loop/RIFE 时序算法。
+
+这些属于实现或后续 Contract。
 
 ## 晋级
 
-完成 Gate B 后进入 `04-native-1080p-take.md`。
+Gate B 完成 -> `04-native-1080p-take.md`。
+
+如果当前低清实现无法表达生产需要的循环/锁定语义，应上报 Contract Review，不得用脚本现状反向修改本阶段目标。
