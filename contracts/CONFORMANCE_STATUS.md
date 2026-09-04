@@ -101,6 +101,22 @@ Contract：`02-t2i.md`, `09-artifacts-and-reports.md`
 
 这本身不要求删除历史能力，但主 Agent不能把它们当新 pipeline 的默认入口。若继续保留，应区分 `legacy/experimental` 与 `production`。
 
+### C-009 Low-res Turbo 与正式 loop semantic 不一致 — PARTIAL
+
+Contract：`03-lowres-i2v-seed.md`, `04-native-1080p-73f.md`
+
+现状：
+
+- 当前 Turbo preview workflow 只有 first-frame I2V；
+- 正式生产 Contract 是 `same_image_first_last_anchor`；
+- 因此 Turbo 可以用于粗筛身份、动作方向和镜头风险，但不能证明该 seed 的正式 LoopLock 返回轨迹已经通过。
+
+目标：
+
+- Turbo 产物明确记录 `screening_only: true`、`loop_semantic_match: false`；
+- 主 Agent根据实际跨语义漂移决定是否增加标准低分辨率 loop-confirmation；
+- 不允许 subagent把 Turbo 粗筛结果写成“正式循环 seed 已验证”。
+
 ## 历史文档冲突已被规范层隔离
 
 以下旧结论目前 **不是实现 bug，而是历史证据**：
