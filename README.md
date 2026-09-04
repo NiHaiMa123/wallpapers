@@ -1,205 +1,240 @@
 # MiniMax H3 本地动态壁纸工作流
 
 > [!CAUTION]
-> **18+ / Adults Only.** 本仓库包含可选成人内容 LoRA 的本地工作流。仅供已达到法定成年年龄的用户在符合当地法律的前提下使用。未明确要求时，Agent 不自动启用成人动作 LoRA。
+> **18+ / Adults Only.** 仓库包含可选成人内容 LoRA 的本地能力。未明确要求时，生产规范不自动启用可选成人动作 LoRA。
 
-本项目是一套在 **RTX 5080 16GB + 32GB 系统内存**环境中持续验证的 MiniMax H3 / ComfyUI 动态壁纸制作系统。
+本项目是一套面向本地 MiniMax H3 / ComfyUI 动态壁纸制作的 **MD-first Agent 工程**。
 
-项目重点不是“让 ComfyUI 自己全自动做完视频”，而是把制作过程分成两层：
+项目的核心不是某个 PowerShell 脚本或 ComfyUI JSON，而是能够让主 Agent 重建整套系统的规范：
 
-- **Agent 层**：视觉导演、流程编排、人工确认点管理、技术 QC；
-- **ComfyUI / scripts 层**：文生图、图生视频、帧导出、插帧、超分和编码执行。
+```text
+AGENTS.md
+  项目治理 / 主 Agent / subagent / Spec Owner
+        ↓
+pipeline/
+  生产状态机：什么时候做什么
+        ↓
+contracts/
+  执行契约：每个能力必须保证什么
+        ↓
+scripts / workflows / presets / validators
+  当前实现：怎么做
+```
 
-当前规范入口：
+如果实现与 Contract 冲突，不是“代码现在这样所以规范也改成这样”。Subagent 必须上报 `CONTRACT_REVIEW_REQUIRED`；由主 Agent 判断是实现 BUG、Contract 缺口，还是需要受控修改 Contract。
 
-- Agent 最高级规则：[`AGENTS.md`](AGENTS.md)
-- 当前生产流程：[`pipeline/README.md`](pipeline/README.md)
-- 历史实验与验证：[`VALIDATION_HISTORY.md`](VALIDATION_HISTORY.md)
+## 入口
+
+- **最高治理规则**：[`AGENTS.md`](AGENTS.md)
+- **当前生产流程**：[`pipeline/README.md`](pipeline/README.md)
+- **执行 Contract**：[`contracts/README.md`](contracts/README.md)
+- **当前实现一致性差距**：[`contracts/CONFORMANCE_STATUS.md`](contracts/CONFORMANCE_STATUS.md)
+- **历史实验证据**：[`VALIDATION_HISTORY.md`](VALIDATION_HISTORY.md)、`plans/`、`plan2.md`
+
+最后一类是 **NON-NORMATIVE**。其中即使写有“定案”“默认”“推荐”，也只代表当时实验结论，不能覆盖当前 Contract。
 
 ---
 
-## 当前生产思路
+## 当前生产主线
 
 ```text
-视觉导演规划
-  -> 文生图抽卡
-  -> 用户选静态图
-  -> 动作导演
+视觉导演 / Director Brief
+  -> 文生图
+  -> Gate A 用户选静态图
+  -> Motion Brief
   -> 低画质 I2V 筛 video seed
-  -> 用户选 seed
-  -> 1920×1080 / 73帧正式抽卡
-  -> 用户选正式 take
-  -> 导出全部帧
-  -> 用户决定最终保留哪些帧
-  -> 重建帧序列
-  -> RIFE 插帧
+  -> Gate B 用户选 seed
+  -> 正式 1920×1080 / 73f take
+  -> Gate C 用户选 take
+  -> canonical PNG 全帧列
+  -> Gate D 用户选 1-based keep list
+  -> 重建人工定稿序列
+  -> 插帧
   -> 超分
-  -> 最终 QC
+  -> 参数化 Final QC
   -> 交付
 ```
 
-如果用户已有并明确认可的输入图，可以跳过文生图阶段，直接从动作导演和 I2V seed 筛选开始。
+已有用户明确认可的静态图时，可以跳过 T2I / Gate A。
 
-## 为什么这样设计
+## 为什么 Agent 必须先当导演
 
-### 1. Agent 必须先当导演
+文生图不是把用户一句话扩成一长串 prompt。主 Agent 先决定：
 
-文生图不是简单扩写提示词。Agent 应先决定：
-
-- 角色姿势、朝向和视线；
-- 景别、相机高度与角度；
+- 姿势、身体朝向和视线；
+- 景别、相机高度/角度和固定镜头；
 - 16:9 构图和视觉重心；
 - 主光、轮廓光和颜色关系；
 - 场景、道具和前中后景；
-- 哪些区域以后要动；
-- 哪些硬质结构必须锁死；
-- 后续 I2V 适合出现的 2–3 个运动系统。
+- 哪些区域适合后续微动画；
+- 哪些硬质结构必须静止；
+- 后续 I2V 适合的主要运动系统。
 
-然后才把这个 Director Brief 转成 T2I prompt。
+然后才从 Director Brief 派生 T2I prompt；I2V 再单独写 motion brief。
 
-### 2. 低画质视频只负责找 Seed
+## 四个人工 Gate
 
-固定输入图和 motion prompt，用低成本 I2V 批量筛 video seed。
-
-Agent 可以先淘汰脸崩、肢体错误、镜头漂移、动作方向错误的候选，并给 seed 排名；但最终由用户决定哪个 seed 值得进入高成本 1080p 阶段。
-
-### 3. 1080p 必须重新抽卡和人工确认
-
-低分辨率 seed 的运动倾向不能保证在高分辨率、不同 ComfyUI 会话中完全复现。
-
-所以选定 seed 后，正式生成目标为：
-
-```text
-1920×1080
-73 frames
-silent
-```
-
-内部 H3 空间尺寸、具体 profile 和 runner 参数以当前脚本/preset 校验为准。
-
-1080p 正式 take 必须重新观看，由用户选定真正进入后期的版本。
-
-### 4. H3 尾部降速通过人工留帧解决
-
-MiniMax H3 首尾锚定视频常见问题之一是末尾回位时降速甚至冻结。
-
-当前策略不是让自动指标直接删帧，而是：
-
-1. 把用户选中的 1080p take 完整导出为连续图片；
-2. MAD、光流、motion uniformity 标记可能的冻结区；
-3. 用户查看完整帧列；
-4. 用户明确决定最终保留/删除哪些帧；
-5. Agent 严格按用户 keep list 重建序列。
-
-自动分析是证据，不替代用户的留帧决定。
-
-### 5. 最终才做插帧和超分
-
-最终帧序列确定后：
-
-```text
-重建序列 -> RIFE 插帧 -> 超分 -> 编码 / QC
-```
-
-生成错误不能交给后处理修：脸、手、肢体、武器、硬质结构或背景严重重构时，应重新抽 take / seed。
-
-RIFE 出现鬼影、接缝假溶解时回退；AI 超分新增纹理爬行、halo、轮廓呼吸或边缘闪烁时回退到时序安全路线。
-
----
-
-## 四个人工确认点
-
-| Gate | 用户决定什么 | Agent 可以做什么 |
+| Gate | 用户决定 | Agent 职责 |
 |---|---|---|
-| A | 使用哪张静态图 | 初筛结构错误、分析构图、给推荐 |
-| B | 哪个 video seed 进入 1080p | 批量低成本抽卡、排序、指出缺陷 |
-| C | 哪个 1080p / 73f take 进入后期 | 技术检查、正常速度观看、速度风险分析 |
-| D | 最终保留哪些帧 | 导出完整帧列、提供 MAD/光流参考、执行用户 keep list |
+| A | 使用哪张静态图 | 初筛结构错误、构图和 I2V 可执行性 |
+| B | 哪个 video seed 进入正式阶段 | 低成本抽卡、排序、说明缺陷 |
+| C | 哪个 1080p / 73f take 进入后期 | 正常速度审片、结构/时序风险分析 |
+| D | 最终保留哪些帧 | 提供 canonical 全帧列和自动分析证据，严格执行用户 keep list |
 
 Agent 不得把 `WAITING_FOR_USER_SELECTION` 当作 PASS 自动越过。
 
----
+## 正式 1080p 的规范语义
 
-## ComfyUI 层负责什么
-
-ComfyUI 是执行器，不是导演。
-
-当前能力包括：
-
-- H3 伪文生图 / T2I；
-- 外部图片进入 H3 I2V；
-- 低成本 seed preview；
-- 原生 1080p 短视频；
-- LoopLock 首尾锚定；
-- 帧序列输出；
-- RIFE / FrameInterpolate；
-- 2K / 4K 超分；
-- 静音视频输出。
-
-具体命令、节点和 profile 以当前 `scripts/`、`workflows/`、`presets/` 为事实依据。文档不把某个端口永久绑定到某个 ComfyUI 版本；运行前必须读取实际服务版本。
-
----
-
-## 资源与运行边界
-
-- ComfyUI 队列严格串行。
-- H3 运行时不要同时驻留 Qwen、本地大模型、第二个 H3 或其他高内存任务。
-- 常规长任务保留 runner 的 `31.0GiB` RAM 熔断；不要因为接近 32GB 仍能运行就自动抬高阈值。
-- 动态壁纸默认静音。
-- 不覆盖输入、prompt、输出、全帧目录和运行报告。
-- 失败样片和报告保留作为诊断证据。
-- 进程退出成功不代表画面合格。
-
-本机共享路径和实际 ComfyUI 端口可能随实例切换而变化。Agent 应通过 runner、配置和 API 实际响应确认，不根据 README 中的旧端口说明猜测服务身份。
-
----
-
-## 推荐目录
+当前正式 Contract 是：
 
 ```text
-inputs/imported/       输入副本
-prompts/generated/     Director Brief 转出的执行提示词
-outputs/candidates/    T2I / seed / 1080p 候选
-outputs/images/        选定 take 的完整帧列
-outputs/masters/       用户确认后的中间母版
-outputs/wallpapers/    最终成片
-outputs/review/        抽帧、拼图和视觉证据
-artifacts/             MAD、光流、RIFE 等诊断产物
-reports/               runner 和最终 QC 报告
+visible output: 1920×1080
+frames:         73
+fps:            24
+silent:         true
+camera:         locked
 ```
+
+当前已知 H3 内部实现可使用 `1920×1088 -> 1920×1080`，但内部尺寸不是最终交付尺寸。完整定义见 [`contracts/04-native-1080p-73f.md`](contracts/04-native-1080p-73f.md)。
+
+正式 take 应尽量直接保留 1920×1080 PNG 全帧序列，作为后续 Gate D 的 canonical source，而不是先压成 MP4 再拆回图片。
+
+## 人工帧选择
+
+所有面向用户的帧号统一 **1-based**：
+
+```text
+第一帧 = 1
+73f take = 1..73
+```
+
+自动 MAD/光流/速度分析只能提示可能的慢区和尖峰。最终 keep list 由用户决定，并持久化为 human selection manifest。
+
+完整定义见 [`contracts/05-frame-sequence-selection.md`](contracts/05-frame-sequence-selection.md)。
+
+## 插帧与超分
+
+Gate D 后的默认语义是：
+
+```text
+用户已批准的时间轴
+  -> 插帧，只增加中间状态
+  -> 超分，只改变空间分辨率
+```
+
+因此：
+
+- 默认插帧不能偷偷执行自动 tail compression/equalize/remap；
+- target fps 必须显式记录；
+- 循环插帧必须处理最后保留帧到第一保留帧的 wrap interval；
+- 超分必须保持已经批准的 fps；
+- AI detail 新增纹理爬行/halo/边缘闪烁时回退 temporal-safe。
+
+见 [`contracts/06-interpolation.md`](contracts/06-interpolation.md) 与 [`contracts/07-upscale.md`](contracts/07-upscale.md)。
+
+## Final QC
+
+最终 validator 必须从当前 run state / manifest 读取 expected resolution、fps、frame count 等目标，不能把某个历史样片的 `24fps / 61 frames / 固定 seed` 当作全局门槛。
+
+技术 PASS 也不能替代正常速度连续观看。
+
+见 [`contracts/08-final-validation.md`](contracts/08-final-validation.md)。
 
 ---
 
-## 给 Agent 的最短指令示例
+## 主 Agent 与 Subagent
 
-从零制作：
+主 Agent 是 **Spec Owner**。
 
-```text
-按照 AGENTS.md 和当前 pipeline 制作一张动态壁纸。先以导演视角设计画面和后续可动画区域，再做文生图。到每个人工 Gate 都停下来让我选择，不要自动越过。
+Subagent 的典型任务是：
+
+```yaml
+contract_to_implement:
+pipeline_context:
+allowed_files:
+acceptance:
+required_evidence:
 ```
 
-已有图片：
+实现遇到规范冲突时，Subagent 应上报：
 
 ```text
-这张图已经确定。按照当前 pipeline 做动作导演，然后低画质筛 video seed；让我选 seed 后再跑 1920×1080、73帧正式候选。选片后导出全部帧让我决定保留帧，最后再插帧和超分。
+CONTRACT_REVIEW_REQUIRED
 ```
+
+主 Agent 再判断：
+
+```text
+IMPLEMENTATION_BUG
+CONTRACT_GAP
+CONTRACT_CHANGE
+```
+
+详细治理见 [`contracts/00-governance.md`](contracts/00-governance.md)。
+
+---
+
+## 当前实现并未完全迁移完成
+
+规范层已经按新生产路线收敛，但现有 scripts/workflows/presets 仍包含历史实现和旧默认。
+
+当前已登记的主要 conformance gaps 包括：
+
+- 正式 1080p 能力仍分散在 `live2d_profile` 和 streaming runner；
+- canonical PNG + 1-based keep-list rebuild 还没有完整生产入口；
+- 历史 RIFE remap/equalize 路线需要与默认纯插帧路径隔离；
+- 当前部分 4K profile 对 fps 有历史固定限制；
+- 部分 final validator 仍带固定样片规格；
+- 部分 I2V runner 仍有 `LoraStrength=0.5` 的历史默认；
+- 旧 profile 名仍含 `draft/final/probe`。
+
+完整、可派工的列表见 [`contracts/CONFORMANCE_STATUS.md`](contracts/CONFORMANCE_STATUS.md)。
+
+因此当前正确的开发方式是：**先读 Contract，再修实现；不能为了迁就旧实现把新 pipeline 改回去。**
+
+---
+
+## Runtime 边界
+
+统一见 [`contracts/01-runtime.md`](contracts/01-runtime.md)。当前核心原则：
+
+- 实际读取 ComfyUI 版本，不根据 8188/8189 猜实例；
+- 高占用任务和队列严格串行；
+- 默认生产 RAM abort 为 `31.0 GiB`；
+- 未授权不自动安装节点/模型、不修改实例、不提高熔断；
+- 输入、prompt、canonical frames、人工 manifest、输出和报告不覆盖。
+
+端口、安装路径和某次机器的峰值属于环境/历史事实，不是永久规范。
 
 ---
 
 ## 项目结构
 
 ```text
-AGENTS.md                         Agent 角色、权限、人工 Gate 和状态机
-pipeline/                         当前生产流程
-README.md                         人类入口与当前工作方式
-VALIDATION_HISTORY.md             历史验证、失败路线和实验数据
-scripts/                          运行、分析、插帧、超分和验收工具
-workflows/                        ComfyUI API / UI 工作流
-presets/                          生成与后处理 profile
-prompts/                          可复用和生成的提示词
-comfyui_custom_nodes/             项目自定义节点
-plans/                            阶段性实验计划
+AGENTS.md                         最高治理、Spec Owner、人工 Gate
+pipeline/                         当前生产状态机
+contracts/                        可重建执行规范 + conformance 状态
+README.md                         人类入口
+scripts/                          当前运行/分析/后处理实现
+workflows/                        当前 ComfyUI 实现
+presets/                          当前实现参数集合
+tests/                            实现一致性/回归测试
+prompts/                          生成提示词与历史提示词
+VALIDATION_HISTORY.md             NON-NORMATIVE 历史验证
+plans/、plan2.md                  NON-NORMATIVE 历史计划/实验记录
 outputs/、artifacts/、reports/    产物和证据
 ```
 
-旧版 `pipeline/01-intake-and-routing.md` 到 `pipeline/10-failure-recovery.md` 只保留路径兼容和迁移提示，不再定义当前生产主状态机。
+## 给 Agent 的建议入口
+
+从零制作：
+
+```text
+按 AGENTS.md、pipeline 和 contracts 执行。先做 Director Brief；到四个人工 Gate 都停下来让我选择。实现与 Contract 冲突时不要自行改规范，上报主 Agent 做 Contract Review。
+```
+
+开发/重构：
+
+```text
+先读 contracts/CONFORMANCE_STATUS.md，选择一个 gap。按对应 Contract 实现，不改 pipeline 目标；发现 Contract 本身有问题则上报 CONTRACT_REVIEW_REQUIRED。
+```
