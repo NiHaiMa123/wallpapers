@@ -15,9 +15,12 @@ motion_brief:
 motion_prompt_file:
 seed_set:
 preview_profile:
-lora_policy:
-loop_intent:
+lora_enabled: false
+lora_strength: 0
+loop_intent: same_image_first_last_anchor
 ```
+
+可选成人动作 LoRA 默认不启用。只有用户当前任务明确要求并由主 Agent纳入路线时，才把 `lora_enabled` 改为 true，并记录具体 strength / prompt 语义。Subagent 不得因为旧 runner 默认 `0.5` 就自动启用。
 
 ## Required invariants
 
@@ -29,7 +32,18 @@ loop_intent:
 - 相机/循环意图相同；
 - 只改变 seed。
 
-低画质 preview 必须尽量保留与正式生产相同的 **语义约束**：固定镜头、主体锁定、允许/禁止运动、循环意图。若为了成本使用了与生产不同的采样器/Turbo/步数，必须在报告中明确标记 `screening_only`。
+低画质 preview 必须尽量保留与正式生产相同的 **语义约束**：固定镜头、主体锁定、允许/禁止运动、返回起点意图。
+
+正式生产 loop semantic 见 `04-native-1080p-73f.md` 的 `same_image_first_last_anchor`。如果低成本执行器因为 Turbo/节点能力只能做 first-frame I2V，必须明确标记：
+
+```yaml
+screening_only: true
+loop_semantic_match: false
+```
+
+这类 preview 仍可用于粗筛身份/动作方向，但 Agent 必须说明它对正式 LoopLock 行为的预测性较弱。是否增加标准低分辨率 loop-confirmation 由主 Agent根据成本和实际差异决定。
+
+若为了成本使用与生产不同的采样器/Turbo/步数，也必须标记 `screening_only` 并记录差异。
 
 ## Screening policy
 
@@ -45,7 +59,9 @@ loop_intent:
 - 把 Turbo/低成本 preview 当作最终母版；
 - 因某个 seed 在低画质表现好就自动跳过 1080p 人审；
 - seed 比较时同时改 prompt、LoRA、输入图等多个主要变量；
-- 让自动评分代替用户 Gate B。
+- 让自动评分代替用户 Gate B；
+- 因旧 runner 默认值而自动启用可选成人动作 LoRA；
+- 把 `loop_semantic_match: false` 的粗筛结果描述为已验证正式循环行为。
 
 ## Outputs
 
@@ -54,6 +70,10 @@ selected_image_sha256:
 motion_prompt_sha256:
 preview_profile:
 screening_only: true
+loop_intent: same_image_first_last_anchor
+loop_semantic_match:
+lora_enabled:
+lora_strength:
 seed_candidates:
   - seed:
     output:
