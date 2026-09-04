@@ -13,7 +13,7 @@
 3. `contracts/`：执行契约，回答“一个能力必须接受什么、保证什么、产出什么”；
 4. `scripts/`、`workflows/`、`presets/`、validators：当前实现；
 5. `README.md`：人类入口；
-6. `VALIDATION_HISTORY.md`、`plans/`、`plan2.md`：历史证据，NON-NORMATIVE。
+6. `plans/`（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）：历史证据，NON-NORMATIVE。
 
 Pipeline 与 Contract 不应互相复制大量参数。Pipeline 引用 Contract；Contract 不负责决定人工 Gate 的顺序。
 

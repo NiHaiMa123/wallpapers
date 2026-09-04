@@ -29,7 +29,7 @@ scripts / workflows / presets / validators
 - **当前生产流程**：[`pipeline/README.md`](pipeline/README.md)
 - **执行 Contract**：[`contracts/README.md`](contracts/README.md)
 - **当前实现一致性差距**：[`contracts/CONFORMANCE_STATUS.md`](contracts/CONFORMANCE_STATUS.md)
-- **历史实验证据**：[`VALIDATION_HISTORY.md`](VALIDATION_HISTORY.md)、`plans/`、`plan2.md`
+- **历史实验证据**：[`plans/`](plans/README.md)（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）
 
 最后一类是 **NON-NORMATIVE**。其中即使写有“定案”“默认”“推荐”，也只代表当时实验结论，不能覆盖当前 Contract。
 
@@ -212,17 +212,20 @@ CONTRACT_CHANGE
 
 ```text
 AGENTS.md                         最高治理、Spec Owner、人工 Gate
+README.md                         人类入口
 pipeline/                         当前生产状态机
 contracts/                        可重建执行规范 + conformance 状态
-README.md                         人类入口
 scripts/                          当前运行/分析/后处理实现
-workflows/                        当前 ComfyUI 实现
+workflows/                        当前 ComfyUI 实现（API + UI）
 presets/                          当前实现参数集合
 tests/                            实现一致性/回归测试
-prompts/                          生成提示词与历史提示词
-VALIDATION_HISTORY.md             NON-NORMATIVE 历史验证
-plans/、plan2.md                  NON-NORMATIVE 历史计划/实验记录
-outputs/、artifacts/、reports/    产物和证据
+prompts/                          可复用提示词模板（迭代史在 prompts/archive/，仅本地）
+comfyui_custom_nodes/             Qwen3.6 双语导演自定义节点
+config/                           本机 ComfyUI 共享模型路径声明
+assets/                           占位图等静态资源
+plans/                            NON-NORMATIVE 历史计划/实验记录（含 VALIDATION_HISTORY.md）
+inputs/、outputs/、artifacts/、
+reports/、logs/、tmp/             运行输入与产物证据（不入库）
 ```
 
 ## 给 Agent 的建议入口

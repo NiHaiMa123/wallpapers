@@ -7,7 +7,7 @@
 **当前状态：** 已执行（2026-08-30）。5/22/73 帧全部通过；90 帧仍被物理内存阻挡，瓶颈已从 `CreateVideo` 定位到 `VAEDecode` + `ImageScale`。执行结果见第 10 节。  
 **目标设备：** RTX 5080 16GB + 31.11GiB 系统内存  
 **目标实例：** 独立 ComfyUI 0.34，API `http://127.0.0.1:8189`（实际执行时 Comfy Desktop 将其暴露在 `8188`，见 10.6）  
-**关联文档：** [项目使用手册](../README.md)｜[验证历史](../VALIDATION_HISTORY.md)
+**关联文档：** [项目使用手册](../README.md)｜[验证历史](VALIDATION_HISTORY.md)
 
 ## 1. 当前结论
 

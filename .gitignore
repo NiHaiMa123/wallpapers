@@ -14,19 +14,14 @@ vendor_audit/
 legacy/
 .agents/
 
-# Task notes
-plan.md
-plan_v2.md
-图生视频.md
-帧数.md
+# Task notes (archived on disk under plans/, not part of the repo)
+plans/plan.md
+plans/plan_v2.md
+plans/图生视频_Gemini执行手册.md
+plans/帧数速度表.md
 
-# Prompt iteration history (keep templates listed below)
-prompts/MINIMAX_H3_LIVE2D_CRYSTAL_LOCK_LOOP_PROMPT*.md
-prompts/MINIMAX_H3_LIVE2D_FIGURINE_V8*.md
-prompts/MINIMAX_H3_LIVE2D_FIGURINE_V9*.md
-prompts/MINIMAX_H3_LIVE2D_FIGURINE_V10*.md
-prompts/keqing_*.txt
-prompts/generated/
+# Prompt iteration history (templates stay tracked; history lives in prompts/archive/ on disk)
+prompts/archive/
 
 # Experimental workflows not on the pipeline route
 workflows/keqing_keyframe_rife_1080p_api.json
