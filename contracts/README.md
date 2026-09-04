@@ -42,6 +42,12 @@ Pipeline 与 Contract 不应互相复制大量参数。Pipeline 引用 Contract�
 | `08-final-validation.md` | 通用最终验证与交付证据契约 |
 | `09-artifacts-and-reports.md` | 不覆盖、唯一命名、hash、manifest、运行报告契约 |
 
+## Conformance Status
+
+`CONFORMANCE_STATUS.md` 记录 **当前实现距离这些 Contract 还有哪些差距**。
+
+它不是新的规范源，而是主 Agent 的实现审查/派工清单。一个 Contract 已经写清楚，不代表现有脚本已经符合它；在 `CONFORMANCE_STATUS.md` 尚为 `PARTIAL/NONCONFORMING/UNVERIFIED` 时，Agent 不得把实现描述成已经完成规范迁移。
+
 ## 可重建标准
 
 每个执行 Contract 至少应写明：
