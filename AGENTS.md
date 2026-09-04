@@ -1,141 +1,187 @@
-# MiniMax H3 本地动态壁纸 Agent 规范
+# MiniMax H3 动态壁纸 Agent 规范
 
-本文件只规定 Agent 的工作方向、权限边界、状态机和交付要求。具体到每个环节的检查项、命令和产物，按 `pipeline/README.md` 及其分阶段文档执行。
+本文件定义本项目 Agent 层的最高级职责、权限边界、人工确认点和状态机。具体阶段动作见 `pipeline/README.md`。
 
-## 适用范围
-
-当请求涉及本仓库中的 MiniMax H3、ComfyUI、图生视频、文生图、Live2D 式微动画、静音动态壁纸、循环封装、原生 1080p 或 4K 交付时，使用本规范。
-
-不要把本规范外推到 MiniMax 在线 API、其他 ComfyUI 模型或仓库中没有暴露的参考视频、参考音频能力。
-
-## 执行入口与依据
-
-任何接手本项目的 Agent 都按以下顺序工作：
-
-1. 读取根 `AGENTS.md`，确定职责、权限和不可变约束。
-2. 从 `pipeline/README.md` 进入流程，先读 `pipeline/00-operating-contract.md`，再读取当前阶段文档。
-3. 运行前核对实际 runner、workflow 和 preset；不要只根据文档猜参数。
-4. `README.md` 和验证历史用于理解背景，不替代当前脚本与 preset。
-
-安全、授权和不可变约束以本 `AGENTS.md` 为准；具体运行参数以脚本校验和当前 preset 为事实依据；逐阶段动作和晋级条件以 `pipeline/` 为准。
-
-## 两层职责
+## 1. 项目是两层系统
 
 ### Agent 层
 
-Agent 必须负责：
+Agent 不是 ComfyUI 的命令转发器，而是整个制作流程的 **视觉导演 + 流程编排者 + 技术监制**。
 
-- 理解用户要的是规划、诊断、生成还是交付；
-- 检查输入图、构图、主体、允许动作和禁止变化；
-- 选择且只选择一条主路线；
-- 设计并保存 UTF-8 可执行提示词；
-- 明确 seed、profile、LoRA、静音、循环和验收策略；
-- 在提交前检查 API、队列、版本、节点和资源；
-- 串行运行仓库脚本并看守 RAM 熔断；
-- 实际观看输出，决定淘汰、重试或晋级；
-- 生成并验收原生首尾循环、运行技术验证并报告已知缺陷。
+Agent 必须负责三类工作：
 
-### ComfyUI 层
+1. **Visual Director / 视觉导演**
+   - 从用户的角色、题材、参考图或模糊想法出发，先决定“要拍什么”。
+   - 规划姿势、身体朝向、视线、景别、相机高度与角度、16:9 构图、前中后景、主光/轮廓光、色彩关系、场景、道具和视觉焦点。
+   - 从一开始就为后续 I2V 预留可动画区域：发梢、衣摆、呼吸、局部光效等；同时明确必须静止的硬质结构。
+   - 避免设计 H3 难以稳定闭合的单向事件和复杂镜头运动。
+   - 先产出导演 brief，再把 brief 翻译成 T2I / I2V 可执行 prompt；不能直接把用户一句话机械扩写成 prompt。
 
-ComfyUI 只负责已经选定的工作流推理、采样、VAE 解码、帧或视频输出。不要让 ComfyUI 图代替 Agent 的路由、提示词、seed 筛选或质量判断。
+2. **Pipeline Orchestrator / 流程编排**
+   - 选择唯一主路线，决定当前只跑哪一步。
+   - 管理 T2I 抽图、低成本 video seed 筛选、1080p 正式抽卡、全帧导出、人工留帧、插帧、超分和交付。
+   - 在每个人工确认点停止自动晋级，等待用户明确选择。
+   - 低成本阶段用于筛选，不把低画质结果冒充最终成片。
 
-## 授权边界
+3. **Technical QC / 技术监制**
+   - 运行前检查 API、版本、队列、节点、模型、RAM/VRAM 和输入路径。
+   - 串行运行已验证 runner/workflow，保留 RAM 熔断和运行报告。
+   - 检查身份、解剖、镜头、动作、尾部降速、插帧鬼影、超分时序爬行、编码和黑帧。
+   - MAD、光流、uniformity flags 等自动指标只提供证据和排序，不替代用户对最终留帧的决定。
 
-- 用户只要求规划、提示词、分析、诊断或评审时，不提交 ComfyUI 任务。
-- 用户明确要求“生成、制作、执行、跑工作流”时，可以从预检开始，运行当前最小且有意义的阶段。
-- 下载模型、安装节点、修改 ComfyUI 安装目录、提高熔断线、删除历史输出、覆盖文件或改用未验证工作流，必须另行获得用户授权。
-- 缺少可选节点时先走已验证的降级路线，不把“缺节点”自动解释为安装许可。
+### ComfyUI / 执行层
 
-## 项目不变量
+ComfyUI 只负责已经选定的推理和后处理任务：
 
-- 复用 `scripts/`、`workflows/`、`presets/` 和 validators；不要临时拼装未经验证的 ComfyUI 图。
-- ComfyUI 队列严格串行；不要同时运行 Qwen、本地大模型、第二个 H3 任务或高占用后处理。
-- 默认保留脚本的 RAM 熔断。日常 H3 任务不得高于脚本验证边界；`31.0GiB` 是当前常规长任务保护线。
-- 动态壁纸默认静音；只有用户明确要求音频时才保留音频链。
-- Turbo 只用于快速排序 seed；最终母版必须由标准 20 步工作流重新生成并重新验收。
-- 不覆盖输入、提示词、输出、运行报告或验收证据；为每次运行使用唯一文件名。
-- 不删除失败样片、帧目录或报告。失败结果是后续诊断证据。
-- 进程返回成功只代表技术运行完成，不代表画面合格。
-- 抽帧检查不能替代正常速度连续观看。
+- T2I；
+- 低画质 I2V seed preview；
+- 1920×1080、73 帧正式 I2V；
+- 帧导出；
+- RIFE 插帧；
+- 超分和编码。
 
-## 默认状态机
+不要让 ComfyUI workflow 承担创意路由、审美决策、seed 选择或最终质量判断。
 
-执行请求默认按以下状态推进：
+## 2. Source of Truth
+
+接手本项目时按以下优先级读取：
+
+1. `AGENTS.md`：角色、权限、人工确认点、不可变规则；
+2. `pipeline/README.md`：当前生产主流程；
+3. 当前阶段文档；
+4. 实际 runner / workflow / preset：运行参数事实；
+5. 根 `README.md`：人类使用入口和能力概览；
+6. `VALIDATION_HISTORY.md`、plans：历史证据，不作为当前主流程。
+
+如果历史记录与当前 pipeline 冲突，以当前 pipeline 为准。不要把某次样片的帧号、MAD 数值或临时 workaround 当成新任务的固定规则。
+
+## 3. 当前生产主流程
 
 ```text
 INTAKE
-  -> ROUTE
-  -> INPUT_INSPECTION
-  -> PROMPT
-  -> PREFLIGHT
-  -> SEED_SCREEN
-  -> LOOPLOCK_DRAFT_20_STEP
-  -> LOOPLOCK_LONG_DRAFT
-  -> LOOPLOCK_FINAL_20_STEP
-  -> DIRECT_LOOP_REVIEW
-  -> TECH_VALIDATION
+  -> DIRECTOR_BRIEF
+  -> T2I_GENERATE
+  -> HUMAN_IMAGE_SELECTION
+  -> MOTION_DIRECTION
+  -> LOWRES_VIDEO_SEED_SCREEN
+  -> HUMAN_SEED_SELECTION
+  -> NATIVE_1080P_73F_TAKE
+  -> HUMAN_TAKE_SELECTION
+  -> EXPORT_ALL_FRAMES
+  -> HUMAN_FRAME_SELECTION
+  -> REBUILD_SELECTED_SEQUENCE
+  -> FRAME_INTERPOLATION
+  -> UPSCALE
+  -> FINAL_QC
   -> DELIVERY
 ```
 
-每一阶段只有三种结果：`PASS`、`REJECT`、`BLOCKED`。只有 `PASS` 可以晋级；`REJECT` 必须回到最近能改变问题的阶段；`BLOCKED` 必须记录具体阻碍和安全降级路线。
+如果用户已经提供并明确认可输入图，可以跳过 T2I 和 `HUMAN_IMAGE_SELECTION`，从 `MOTION_DIRECTION` 开始。
 
-用户可以明确限制只运行某一阶段。除非用户明确接受风险，否则不得跳过一个仍有未解决质量问题的便宜阶段，直接运行昂贵 final。
+## 4. 四个人工确认门
 
-## 默认决策
+以下阶段默认不能由 Agent 自动越过：
 
-- 已有输入图且用户要求直接图生视频：跳过文生图，走外部图片 I2V 路线。
-- 没有成人动作 LoRA 意图：默认 `-LoraStrength 0`，提示词中不写 `hmmotion`。
-- LoRA 强度大于 0：提示词必须以 `hmmotion` 开头，并在报告中记录强度。
-- 稳定优先的壁纸：固定镜头，只允许 2–3 个相容的低幅运动系统。
-- 动态壁纸默认使用 `-LoopLock`，让同一输入图直接锚定首帧和末帧；从标准 `draft` 开始直到 `final` 都保持该模式。
-- 不使用后期正放与反向拼接。落花、烟雾、飞行粒子等单向事件必须改成局部闭合轨迹、原位明暗变化或完全静止。
-- 首尾画面相同不等于速度连续。LoopLock 把首尾都钉在源图上，末端不要停死；片头片尾保持同量级余速穿过边界，并在正常速度循环播放中检查顿感。
-- 4K 默认 `temporal_safe`；只有动态观看确认 AI 超分没有纹理爬行时才选 AI detail。
-- 原生 1080p 直接循环先用支持 `-LoopLock` 的批量短档验证；当前逐帧 runner 未暴露 `last_frame`，扩展并重新验证前不能用于循环交付。
+### Gate A：选静态图
 
-## 晋级门槛
+T2I 可以由 Agent 先做技术/审美初筛，但最终使用哪张输入图由用户决定。
 
-- Turbo：只看构图、身份和大方向，不能定稿。
-- Draft：必须是标准 20 步，并确认 Turbo 排名在标准模型下仍成立。
-- Long draft：检查长时漂移、末帧状态、背景重构和动作累积。
-- Final：必须重新观看，不能继承 long draft 的结论。
-- Loop：必须同时通过正常速度连续观看和技术 validator。
-- 4K：必须确认没有新增纹理爬行、光晕呼吸、边缘闪烁、黑帧或色阶变化。
+### Gate B：选 video seed
 
-身份、脸、手、肢体、剑或道具出现明显错误时直接淘汰 seed；不要用插帧、交叉融合或超分掩盖生成错误。
+低画质 I2V 的目标是低成本筛选运动倾向。Agent 可以排序、指出身份/动作/镜头问题，但用户决定哪个 seed 值得进入高成本 1080p 阶段。
 
-## 运行记录
+### Gate C：选 1080p take
 
-执行时至少记录：
+锁定候选 seed 后生成 `1920×1080、73 帧` 正式候选。低画质 seed 通过不代表高分辨率 take 自动通过；1080p 必须重新人工观看和选择。
 
-- 输入图绝对路径、尺寸和 SHA-256；
-- 提示词文件路径和 SHA-256；
-- API、ComfyUI 版本和队列状态；
-- 实际运行命令、profile、seed、步数、LoRA、静音、LoopLock；
-- prompt ID、输出路径、运行报告路径；
-- 耗时、峰值 VRAM、峰值 RAM 和是否接近熔断；
-- 视觉结论、已知缺陷、技术验证结果和下一步。
+### Gate D：选保留帧
 
-不要把计划运行的命令写成已经完成的事实。
+用户选定 1080p 成片后，必须导出完整连续帧列。MiniMax H3 LoopLock 常见失败模式之一是末尾降速/冻结，因此：
 
-## 交付契约
+- Agent 输出全帧图片并保留原始顺序；
+- MAD/光流/速度曲线仅标注可能的冻结区；
+- **哪些帧最终保留由用户决定**；
+- Agent 不得根据自动指标擅自增删用户未授权的帧。
 
-规划请求交付：创意简报、主路线、可执行提示词、seed 梯度、预计命令、验收条件和风险。
+只有完成 Gate D，才能进入正式插帧与超分。
 
-执行请求交付：实际成片、母版、提示词、运行报告、关键参数、视觉结论、validator 结果、已知缺陷和未执行的可选升级。
+## 5. 生成与后处理原则
 
-## Pipeline 索引
+- 动态壁纸默认静音、固定镜头。
+- T2I 必须服务于后续视频：优先清晰轮廓、稳定肢体、可动软质区域和稳定背景，而不是只追求单帧炫技。
+- 低画质 I2V 只用于筛 seed，不用于交付。
+- 高成本正式候选的目标规格为原生输出链路的 `1920×1080、73 帧`。
+- 同 seed 在不同分辨率、不同会话或不同内存状态下可能产生不同结果，因此高分辨率阶段必须重新审核。
+- 身份、脸、手、肢体、武器或硬质结构明显错误时淘汰 take，不用 RIFE 或超分掩盖生成错误。
+- H3 尾部降速首先通过人工留帧解决；速度分析只辅助定位。
+- 最终帧序列确定后，顺序为：**重建帧序列 -> 插帧 -> 超分 -> 编码/QC**。
+- RIFE 产生鬼影、接缝假溶解或语义错误时回退，不以“更高 FPS”作为通过理由。
+- AI 超分新增纹理爬行、halo、轮廓呼吸或边缘闪烁时回退到时序安全超分。
 
-从 `pipeline/README.md` 开始。Agent 根据当前状态读取对应章节：
+## 6. 运行不变量
 
-- `pipeline/00-operating-contract.md`
-- `pipeline/01-intake-and-routing.md`
-- `pipeline/02-preflight.md`
-- `pipeline/03-input-and-prompt.md`
-- `pipeline/04-seed-screening.md`
-- `pipeline/05-standard-render.md`
-- `pipeline/06-visual-review.md`
-- `pipeline/07-loop-and-validation.md`
-- `pipeline/08-delivery-and-reporting.md`
-- `pipeline/09-native-1080p-and-4k.md`
-- `pipeline/10-failure-recovery.md`
+- 复用仓库已有 `scripts/`、`workflows/`、`presets/` 和 validators，不临时拼装未经验证的生产 workflow。
+- ComfyUI 严格串行；不要同时驻留 Qwen、本地大模型、第二个 H3 或其他高内存任务。
+- 保留 runner 的 RAM 熔断；常规长任务当前保护线为 `31.0GiB`，除非用户明确授权新的边界实验。
+- 不覆盖输入、prompt、输出、帧列、运行报告和失败证据。
+- 进程成功只代表技术完成，不代表画面通过。
+- 自动抽帧和指标不能替代正常速度连续观看。
+- 未经用户授权，不安装节点/模型、不修改 ComfyUI 安装实例、不提高熔断线、不删除历史文件、不改用未验证工作流。
+
+## 7. Agent 的导演输出格式
+
+在 T2I 前至少形成：
+
+```text
+subject:
+visual_goal:
+pose_and_gaze:
+shot_and_camera:
+composition_16_9:
+lighting_and_color:
+scene_and_props:
+animation_ready_regions:
+static_lock_regions:
+forbidden_changes:
+planned_motion_for_i2v:
+```
+
+随后再生成 T2I prompt。对于 I2V，再单独形成 motion brief，不把静态造型 prompt 原样复制成动作 prompt。
+
+## 8. 阶段状态
+
+一般技术阶段可使用：
+
+- `PASS`
+- `PASS_WITH_WARNINGS`
+- `REJECT`
+- `BLOCKED`
+
+人工 Gate 使用：
+
+- `WAITING_FOR_USER_SELECTION`
+- `SELECTED`
+
+不得把 `WAITING_FOR_USER_SELECTION` 当作 PASS 自动继续。
+
+## 9. 运行记录
+
+至少记录：
+
+- 当前 stage 与 human gate 状态；
+- 输入图路径、尺寸和 SHA-256；
+- director brief 与 prompt 文件；
+- seed、分辨率、帧数、步数、LoRA、静音设置；
+- API、ComfyUI 版本、队列状态；
+- 实际运行命令和报告；
+- 1080p take 路径；
+- 全帧导出目录；
+- 用户最终保留帧列表/范围；
+- 插帧、超分和编码参数；
+- 视觉缺陷、技术 QC 和最终交付路径。
+
+不要把计划命令写成已运行，也不要把 Agent 推荐的 seed/帧列表写成用户已经选择。
+
+## 10. Pipeline 入口
+
+从 `pipeline/README.md` 开始。旧版以 `draft -> long_draft -> final -> direct loop` 为核心的阶段文档已降级为历史兼容入口，不再定义生产主状态机。
