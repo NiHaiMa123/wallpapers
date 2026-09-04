@@ -1,0 +1,217 @@
+{
+  "2": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_audio_vae_fp32.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "clip": ["3", 0],
+      "vae": ["4", 0],
+      "prompt": "hmmotion. This is one continuous locked-off product shot of the exact premium resin figurine from the first frame. The camera, framing, focal length, display base, garden, lanterns and plants remain perfectly static. Preserve the exact clearly adult face, eye shape, hairstyle, outfit coverage, body proportions, painted details, glossy resin/PVC material, lighting, shadows, depth of field and every accessory. The figurine keeps exactly the same pose and silhouette. During the first third of the shot she performs one quick, complete natural blink: the eyelids close briefly and are fully open again before the midpoint. Both eyes then remain fully open through the final frame. The upper torso shows extremely subtle natural breathing without changing posture, and only the tips of a few hair strands and translucent ribbons make a tiny soft secondary movement. Smooth restrained Live2D-style wallpaper motion. No second blink, no eyes closed at the end, no nudity, no exposure, no explicit sexual action, no lip movement, no speaking, no hand movement, no limb movement, no pose change, no body turn, no camera motion, no zoom, no pan, no tilt, no shake, no cut, no scene change, no morphing, no extra fingers, no extra limbs, no text and no subtitles. Audio: quiet night-garden ambience, no speech and no music.",
+      "width": 1024,
+      "height": 576,
+      "length": 73,
+      "first_frame": ["18", 0]
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["16", 0],
+      "conditioning": ["6", 0]
+    }
+  },
+  "8": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": ["16", 0],
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1.0
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "res_multistep"
+    }
+  },
+  "10": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 2026082904
+    }
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["10", 0],
+      "guider": ["7", 0],
+      "sampler": ["9", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["6", 1]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["11", 0],
+      "vae": ["4", 0]
+    }
+  },
+  "13": {
+    "class_type": "VAEDecodeAudio",
+    "inputs": {
+      "samples": ["11", 0],
+      "vae": ["5", 0]
+    }
+  },
+  "14": {
+    "class_type": "CreateVideo",
+    "inputs": {
+      "images": ["12", 0],
+      "fps": 24.0,
+      "audio": ["13", 0],
+      "bit_depth": 8
+    }
+  },
+  "15": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": ["14", 0],
+      "filename_prefix": "minimax_h3/text_to_live2d_image2026083003_video2026082904",
+      "format": "auto",
+      "codec": "auto"
+    }
+  },
+  "16": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["2", 0],
+      "lora_name": "HMNSFW-AIO-V2.5.safetensors",
+      "strength_model": 0.5
+    }
+  },
+  "17": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["28", 0],
+      "upscale_method": "lanczos",
+      "width": 1024,
+      "height": 576,
+      "crop": "center"
+    }
+  },
+  "18": {
+    "class_type": "ImageSharpen",
+    "inputs": {
+      "image": ["17", 0],
+      "sharpen_radius": 1,
+      "sigma": 0.7,
+      "alpha": 0.15
+    }
+  },
+  "21": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "clip": ["3", 0],
+      "vae": ["4", 0],
+      "prompt": "A polished close product photograph of a premium 1/6 scale collectible resin figurine depicting a clearly adult woman, elegant opaque fantasy-inspired layered outfit with tasteful complete coverage, intricate painted embroidery, translucent ornaments, finely sculpted silver-blue hair, refined mature facial features, glossy resin and PVC material, displayed in a warm lantern-lit night garden. Three-quarter portrait composition from mid-thigh upward, face large and prominent, both eyes fully open and looking toward the camera, calm neutral expression, both hands visible, balanced 16:9 desktop wallpaper framing, static pose, locked camera, shallow depth of field, cinematic warm rim light, physically plausible shadows, extremely detailed eyes, eyelashes, face, hands, fabric, hair strands and accessories, high-end commercial figure photography, clean image, coherent anatomy. No child, no young-looking character, no closed eyes, no nudity, no exposure, no explicit sexual action, no motion blur, no camera motion, no duplicate person, no extra limbs, no extra fingers, no malformed hands, no text, no logo, no watermark, no subtitles.",
+      "width": 1024,
+      "height": 576,
+      "length": 5
+    }
+  },
+  "22": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["2", 0],
+      "conditioning": ["21", 0]
+    }
+  },
+  "23": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": ["2", 0],
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1.0
+    }
+  },
+  "24": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "res_multistep"
+    }
+  },
+  "25": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 2026083003
+    }
+  },
+  "26": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["25", 0],
+      "guider": ["22", 0],
+      "sampler": ["24", 0],
+      "sigmas": ["23", 0],
+      "latent_image": ["21", 1]
+    }
+  },
+  "27": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["26", 0],
+      "vae": ["4", 0]
+    }
+  },
+  "28": {
+    "class_type": "ImageFromBatch",
+    "inputs": {
+      "image": ["27", 0],
+      "batch_index": 0,
+      "length": 1
+    }
+  },
+  "29": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["28", 0],
+      "filename_prefix": "minimax_h3/text_to_live2d/first_frame_seed2026083003_frame0"
+    }
+  },
+  "30": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["2", 0],
+      "lora_name": "HMNSFW-AIO-V2.5.safetensors",
+      "strength_model": 0.0
+    }
+  }
+}

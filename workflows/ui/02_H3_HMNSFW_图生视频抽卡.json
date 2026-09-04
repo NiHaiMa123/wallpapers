@@ -1,0 +1,1041 @@
+{
+  "id": "73013b5e-8e45-4137-8f62-e78cb0795884",
+  "revision": 0,
+  "last_node_id": 17,
+  "last_link_id": 19,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        20,
+        10
+      ],
+      "size": [
+        940,
+        260
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "# 02｜H3 + HMNSFW 图生视频抽卡\n\n从 ComfyUI **output** 目录选择第 1 步保存的 PNG。该图片同时连接 first_frame 与 last_frame，实际锁定首尾帧；固定图片和动作提示词，通过改变 Video Seed 反复 Queue 抽卡。\n\n- **🟢 建议调：** 输入图、动作提示词、Video Seed、HMNSFW 强度。\n- **🔵 可调：** 步数；默认 20。动作过大优先换 seed，再收紧提示词。\n- **🔴 不建议调：** 首尾帧双连接、1024×576、73 帧、24fps、模型和采样器。\n\n默认动作是多部位、低幅度 Live2D 循环：呼吸、头部、眼神、微表情、头发、衣摆、饰件和环境同时做小周期运动，并在结尾回到初始状态。HMNSFW 默认 0.30；建议 0.20–0.50。此流程不加载音频 VAE，输出静音 MP4，给显存和内存留余量。"
+      ],
+      "title": "使用说明",
+      "color": "#315c45",
+      "bgcolor": "#111111"
+    },
+    {
+      "id": 2,
+      "type": "LoadImageOutput",
+      "pos": [
+        20,
+        320
+      ],
+      "size": [
+        420,
+        430
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5,
+            6
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImageOutput"
+      },
+      "widgets_values": [
+        "H3_T2I_Selected_Test.png [output]"
+      ],
+      "title": "🟢 建议调 ①｜选择第 1 步输出 PNG",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 3,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        490,
+        320
+      ],
+      "size": [
+        760,
+        430
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            7
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "hmmotion. One continuous locked-off cinematic Live2D-style wallpaper shot of the exact adult 3D anime game character from the first frame, rendered as a living high-end game character with refined MMD polish, not a plastic figurine.\n\nThe first and final frame must match in pose, expression, gaze, hair placement, costume placement, lighting and effects. Every motion follows a smooth low-amplitude periodic cycle and fully returns to its starting state before the end. Both eyes are fully open at the first and final frame. Perform one soft complete blink near the middle, never at either boundary.\n\nMany parts move simultaneously, but every movement remains small and elegant: one subtle breathing cycle; a barely perceptible balanced shoulder and upper-body sway; a tiny one-to-two-degree head inclination; a minute gaze adjustment and micro-expression; gentle independent secondary oscillations in front bangs, hair tips and long hair sections; restrained delayed follow-through in sleeves, ribbons, skirt hem and small costume ornaments; subtle cyclic environmental motion in nearby particles, plants, fabric, light sources and reflections. All parts return smoothly to their original state.\n\nPreserve the exact face, apparent adult age, eyes, hairstyle, costume coverage and patterns, body proportions, accessories, materials, full-body pose, subject placement, framing, background and color palette from the first frame. Keep the complete character visible from hair tips to both shoes. Hands, held props, hips, legs and feet remain spatially anchored; no step, body turn or large pose change.\n\nStatic camera and fixed focal length. Smooth coherent high-detail motion, stable facial features, stable costume patterns, stable anatomy, natural matte skin and controlled cinematic lighting. No camera movement, zoom, pan, tilt, roll, shake, cut, scene change, morphing, identity drift, face warping, costume change, exposure, large limb motion, bent props, extra fingers, extra limbs, duplicate objects, material crawling, lighting flicker, text, logo, watermark or subtitles."
+      ],
+      "title": "🟢 建议调 ②｜完整动作提示词",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 4,
+      "type": "PrimitiveFloat",
+      "pos": [
+        20,
+        800
+      ],
+      "size": [
+        300,
+        90
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "FLOAT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "FLOAT",
+          "type": "FLOAT",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveFloat"
+      },
+      "widgets_values": [
+        0.3
+      ],
+      "title": "🟢 建议调 ③｜HMNSFW：0.20–0.50",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 5,
+      "type": "UNETLoader",
+      "pos": [
+        1360,
+        40
+      ],
+      "size": [
+        610,
+        100
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "unet_name",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+        "default"
+      ],
+      "title": "🔴 基础 H3（不要换）",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 6,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        1360,
+        180
+      ],
+      "size": [
+        610,
+        110
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        },
+        {
+          "name": "lora_name",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "strength_model",
+          "type": "FLOAT",
+          "link": 2
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            13,
+            15
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "HMNSFW-AIO-V2.5.safetensors",
+        0.3
+      ],
+      "title": "HMNSFW V2.5（必需）",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 7,
+      "type": "CLIPLoader",
+      "pos": [
+        1360,
+        330
+      ],
+      "size": [
+        610,
+        120
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip_name",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "type",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "device",
+          "type": "COMBO",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "minimax",
+        "default"
+      ],
+      "title": "🔴 H3 文本编码器（不要换）",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 8,
+      "type": "VAELoader",
+      "pos": [
+        1360,
+        490
+      ],
+      "size": [
+        610,
+        90
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "vae_name",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            4,
+            17
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "minimax_h3_video_vae_fp16.safetensors"
+      ],
+      "title": "🔴 仅 Video VAE；不加载音频",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 9,
+      "type": "MiniMaxH3ImageToVideo",
+      "pos": [
+        2070,
+        100
+      ],
+      "size": [
+        540,
+        540
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 3
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 4
+        },
+        {
+          "name": "first_frame",
+          "type": "IMAGE",
+          "link": 5,
+          "shape": 7
+        },
+        {
+          "name": "last_frame",
+          "type": "IMAGE",
+          "link": 6,
+          "shape": 7
+        },
+        {
+          "name": "prompt",
+          "type": "STRING",
+          "link": 7
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "length",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            14
+          ]
+        },
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3ImageToVideo"
+      },
+      "widgets_values": [
+        "hmmotion. One continuous locked-off cinematic Live2D-style wallpaper shot of the exact adult 3D anime game character from the first frame, rendered as a living high-end game character with refined MMD polish, not a plastic figurine.\n\nThe first and final frame must match in pose, expression, gaze, hair placement, costume placement, lighting and effects. Every motion follows a smooth low-amplitude periodic cycle and fully returns to its starting state before the end. Both eyes are fully open at the first and final frame. Perform one soft complete blink near the middle, never at either boundary.\n\nMany parts move simultaneously, but every movement remains small and elegant: one subtle breathing cycle; a barely perceptible balanced shoulder and upper-body sway; a tiny one-to-two-degree head inclination; a minute gaze adjustment and micro-expression; gentle independent secondary oscillations in front bangs, hair tips and long hair sections; restrained delayed follow-through in sleeves, ribbons, skirt hem and small costume ornaments; subtle cyclic environmental motion in nearby particles, plants, fabric, light sources and reflections. All parts return smoothly to their original state.\n\nPreserve the exact face, apparent adult age, eyes, hairstyle, costume coverage and patterns, body proportions, accessories, materials, full-body pose, subject placement, framing, background and color palette from the first frame. Keep the complete character visible from hair tips to both shoes. Hands, held props, hips, legs and feet remain spatially anchored; no step, body turn or large pose change.\n\nStatic camera and fixed focal length. Smooth coherent high-detail motion, stable facial features, stable costume patterns, stable anatomy, natural matte skin and controlled cinematic lighting. No camera movement, zoom, pan, tilt, roll, shake, cut, scene change, morphing, identity drift, face warping, costume change, exposure, large limb motion, bent props, extra fingers, extra limbs, duplicate objects, material crawling, lighting flicker, text, logo, watermark or subtitles.",
+        1024,
+        576,
+        73
+      ],
+      "title": "H3 I2V｜固定 1024×576×73",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 10,
+      "type": "RandomNoise",
+      "pos": [
+        2720,
+        70
+      ],
+      "size": [
+        330,
+        90
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise_seed",
+          "type": "INT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            8
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        2026083014,
+        "randomize"
+      ],
+      "title": "🟢 Seed：每次抽卡改这里",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 11,
+      "type": "BasicGuider",
+      "pos": [
+        3100,
+        200
+      ],
+      "size": [
+        300,
+        70
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 13
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicGuider"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 12,
+      "type": "BasicScheduler",
+      "pos": [
+        2720,
+        330
+      ],
+      "size": [
+        330,
+        130
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 15
+        },
+        {
+          "name": "scheduler",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "steps",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "denoise",
+          "type": "FLOAT",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SIGMAS",
+          "type": "SIGMAS",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicScheduler"
+      },
+      "widgets_values": [
+        "simple",
+        20,
+        1.0
+      ],
+      "title": "🔵 可调：步数默认 20",
+      "color": "#244a66",
+      "bgcolor": "#183347"
+    },
+    {
+      "id": 13,
+      "type": "KSamplerSelect",
+      "pos": [
+        2720,
+        500
+      ],
+      "size": [
+        330,
+        75
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "sampler_name",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SAMPLER",
+          "type": "SAMPLER",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "KSamplerSelect"
+      },
+      "widgets_values": [
+        "res_multistep"
+      ],
+      "title": "🔴 不建议调：采样器",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 14,
+      "type": "SamplerCustomAdvanced",
+      "pos": [
+        3480,
+        220
+      ],
+      "size": [
+        270,
+        170
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 8
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 9
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 10
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 11
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            16
+          ]
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "VAEDecode",
+      "pos": [
+        3820,
+        240
+      ],
+      "size": [
+        250,
+        80
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 16
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "CreateVideo",
+      "pos": [
+        4200,
+        130
+      ],
+      "size": [
+        330,
+        120
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "bit_depth",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CreateVideo"
+      },
+      "widgets_values": [
+        24.0,
+        8
+      ],
+      "title": "🔴 固定 24fps / 8-bit / 无音频",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 17,
+      "type": "SaveVideo",
+      "pos": [
+        4620,
+        80
+      ],
+      "size": [
+        720,
+        260
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 19
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "format",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "codec",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "minimax_h3/ui_i2v_hmnsfw/draw",
+        "mp4",
+        "auto"
+      ],
+      "title": "保存并预览 MP4｜换 Seed 继续抽卡"
+    }
+  ],
+  "links": [
+    [
+      1,
+      5,
+      0,
+      6,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      4,
+      0,
+      6,
+      2,
+      "FLOAT"
+    ],
+    [
+      3,
+      7,
+      0,
+      9,
+      0,
+      "CLIP"
+    ],
+    [
+      4,
+      8,
+      0,
+      9,
+      1,
+      "VAE"
+    ],
+    [
+      5,
+      2,
+      0,
+      9,
+      2,
+      "IMAGE"
+    ],
+    [
+      6,
+      2,
+      0,
+      9,
+      3,
+      "IMAGE"
+    ],
+    [
+      7,
+      3,
+      0,
+      9,
+      4,
+      "STRING"
+    ],
+    [
+      8,
+      10,
+      0,
+      14,
+      0,
+      "NOISE"
+    ],
+    [
+      9,
+      11,
+      0,
+      14,
+      1,
+      "GUIDER"
+    ],
+    [
+      10,
+      13,
+      0,
+      14,
+      2,
+      "SAMPLER"
+    ],
+    [
+      11,
+      12,
+      0,
+      14,
+      3,
+      "SIGMAS"
+    ],
+    [
+      12,
+      9,
+      1,
+      14,
+      4,
+      "LATENT"
+    ],
+    [
+      13,
+      6,
+      0,
+      11,
+      0,
+      "MODEL"
+    ],
+    [
+      14,
+      9,
+      0,
+      11,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      15,
+      6,
+      0,
+      12,
+      0,
+      "MODEL"
+    ],
+    [
+      16,
+      14,
+      0,
+      15,
+      0,
+      "LATENT"
+    ],
+    [
+      17,
+      8,
+      0,
+      15,
+      1,
+      "VAE"
+    ],
+    [
+      18,
+      15,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      16,
+      0,
+      17,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "🟢 建议调：输入图 / 动作提示词 / HMNSFW",
+      "bounding": [
+        0,
+        290,
+        1280,
+        640
+      ],
+      "color": "#2f855a",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "🔴 不建议调：固定模型与 1024×576×73",
+      "bounding": [
+        1330,
+        10,
+        1320,
+        670
+      ],
+      "color": "#9b3d3d",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "🟢/🔵 Video Seed 与采样",
+      "bounding": [
+        2690,
+        10,
+        1420,
+        560
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "输出：静音 24fps MP4",
+      "bounding": [
+        4170,
+        10,
+        1210,
+        370
+      ],
+      "color": "#8b6b32",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.62,
+      "offset": [
+        130,
+        120
+      ]
+    }
+  },
+  "version": 0.4
+}

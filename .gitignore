@@ -1,0 +1,59 @@
+# Runtime artifacts
+outputs/
+artifacts/
+reports/
+keqinglog/
+logs/
+inputs/
+tmp/
+*.log
+
+# Frozen copies / experiments
+backups/
+vendor_audit/
+legacy/
+.agents/
+
+# Task notes
+plan.md
+plan_v2.md
+图生视频.md
+帧数.md
+
+# Prompt iteration history (keep templates listed below)
+prompts/MINIMAX_H3_LIVE2D_CRYSTAL_LOCK_LOOP_PROMPT*.md
+prompts/MINIMAX_H3_LIVE2D_FIGURINE_V8*.md
+prompts/MINIMAX_H3_LIVE2D_FIGURINE_V9*.md
+prompts/MINIMAX_H3_LIVE2D_FIGURINE_V10*.md
+prompts/keqing_*.txt
+prompts/generated/
+
+# Experimental workflows not on the pipeline route
+workflows/keqing_keyframe_rife_1080p_api.json
+workflows/keqing_krea2_motion_keyframe_a_api.json
+workflows/minimax_h3_i2v_baseline_api.json
+workflows/minimax_h3_i2v_hmnsfw_v25_api.json
+workflows/minimax_h3_i2v_native_looplock_api.json
+
+# Experimental / per-task scripts
+scripts/add_elegant_sword_filaments.py
+scripts/analyze_4k_upscale.py
+scripts/analyze_h3_motion_aesthetics.py
+scripts/analyze_h3_t2i_batch.py
+scripts/analyze_motion_uniformity_off.py
+scripts/analyze_text_to_live2d.py
+scripts/build_seamless_wallpaper.py
+scripts/compare_h3_frames_to_video.py
+scripts/compare_h3_performance.py
+scripts/diag_rife_pair.py
+scripts/make_video_comparison_sheet.py
+scripts/make_video_crop_sheet.py
+scripts/replace_last_with_first.py
+scripts/resample_video_to_fps.py
+scripts/run_h3_window_probe.py
+scripts/run_krea2_identity_edit.ps1
+scripts/screen_h3_loop_candidates.py
+
+# Python cache
+__pycache__/
+*.pyc

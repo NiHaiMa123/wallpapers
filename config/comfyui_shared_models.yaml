@@ -1,0 +1,13 @@
+shared_models:
+  base_path: D:/Comfy-Desktop/ComfyUI-Shared
+  is_default: true
+  checkpoints: models/checkpoints/
+  diffusion_models: models/diffusion_models/
+  text_encoders: models/text_encoders/
+  clip: models/clip/
+  clip_vision: models/clip_vision/
+  vae: models/vae/
+  loras: models/loras/
+  upscale_models: models/upscale_models/
+  frame_interpolation: models/frame_interpolation/
+  model_patches: models/model_patches/

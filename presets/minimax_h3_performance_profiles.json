@@ -1,0 +1,43 @@
+{
+  "fast_preview": {
+    "workflow": "minimax_h3_live2d_turbo_api.json",
+    "width": 1024,
+    "height": 576,
+    "length": 73,
+    "fps": 24.0,
+    "steps": 4,
+    "scheduler": "simple",
+    "turbo_lora": "minimax_h3_turbo_v4_step600_ema.safetensors",
+    "turbo_strength": 1.0,
+    "low_vram": false,
+    "hmnsfw_strength": 0.5,
+    "description": "Default fast seed preview; tested v4 Turbo at 4 steps"
+  },
+  "detail_preview": {
+    "workflow": "minimax_h3_live2d_turbo_api.json",
+    "width": 1024,
+    "height": 576,
+    "length": 73,
+    "fps": 24.0,
+    "steps": 8,
+    "scheduler": "simple",
+    "turbo_lora": "minimax_h3_turbo_v4_step600_ema.safetensors",
+    "turbo_strength": 1.0,
+    "low_vram": false,
+    "hmnsfw_strength": 0.5,
+    "description": "Optional higher-detail Turbo preview; slower and showed stronger saturation/drift on the fixed test seed"
+  },
+  "final_quality": {
+    "workflow": "minimax_h3_live2d_figurine_api.json",
+    "width": 1344,
+    "height": 768,
+    "length": 124,
+    "fps": 24.0,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "turbo_lora": null,
+    "hmnsfw_strength": 0.5,
+    "description": "Quality master; standard 20-step workflow without Turbo"
+  }
+}

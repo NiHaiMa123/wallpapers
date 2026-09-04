@@ -1,0 +1,1302 @@
+{
+  "last_node_id": 18,
+  "last_link_id": 16,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        20,
+        20
+      ],
+      "size": [
+        1500,
+        390
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "# 00｜Qwen3.6 双语 H3 提示词导演｜最多四张参考图\n\n它不是逐句翻译：先理解中文构思，再按需分析参考图，发散补齐制作细节，最后同时输出内容一致的 **中文完善版** 和 **English H3 Prompt**。\n\n- **🟢 建议调：** 中文构思、任务模式、发散等级、额外要求、参考图及其说明。\n- **🔵 可调：** 参考图最长边、上下文、GPU 卸载、最大输出、推理、Temperature。\n- **🔴 不建议调：** Top-P / Top-K / Min-P、自动卸载、超时、模型键、lms.exe。\n\n参考图规则：每个上传槽下面都有独立说明，默认“提取当前图片风格”。只有 **真实图片 + 非空说明** 同时存在才会发送给千问；只传图但把说明清空，则该图跳过。默认 1×1 占位图代表“未选择”，不会送入模型。可分别写“只参考背景与光影”“只参考服装材质”“只参考构图，不参考人物”等。\n\n默认组合按 RTX 5080 16GB + 32GB RAM 的稳定性设置：32K 上下文、20% GPU卸载、视觉模式20%上限、单并发。更高卸载虽然更快，但当前桌面占用下可能无法分配计算缓冲；节点会在任何模式下自动回退到30%/20%，避免OOM。执行前释放 ComfyUI 模型缓存，生成后无论成功失败都卸载 Qwen。复用 LM Studio 自带运行时，不需要另装 llama.cpp。"
+      ],
+      "title": "使用说明｜原始构思 + 可选参考图 → 双语 H3 提示词",
+      "color": "#315c45",
+      "bgcolor": "#111111"
+    },
+    {
+      "id": 2,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        20,
+        470
+      ],
+      "size": [
+        980,
+        330
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "精致高端树脂手办风，一名明确30岁以上的成年女性，月夜庭院陈列场景，16:9桌面壁纸。请发散补全主体细节、成熟年龄特征、姿态、构图、镜头、树脂与PVC材质、光影、背景和负面约束。"
+      ],
+      "widgets_values_named": {
+        "value": "精致高端树脂手办风，一名明确30岁以上的成年女性，月夜庭院陈列场景，16:9桌面壁纸。请发散补全主体细节、成熟年龄特征、姿态、构图、镜头、树脂与PVC材质、光影、背景和负面约束。"
+      },
+      "title": "🟢 建议调 ①｜中文核心构思",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 3,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        1040,
+        470
+      ],
+      "size": [
+        480,
+        330
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            2
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "保持单人、固定镜头、明确成年人；中文与英文内容必须一一对应。不要改变用户指定的主体、风格和场景。"
+      ],
+      "widgets_values_named": {
+        "value": "保持单人、固定镜头、明确成年人；中文与英文内容必须一一对应。不要改变用户指定的主体、风格和场景。"
+      },
+      "title": "🟢 建议调 ②｜额外硬性要求",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 15,
+      "type": "LoadImage",
+      "pos": [
+        20,
+        930
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            7
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1"
+      },
+      "widgets_values": [
+        "QwenReferencePlaceholder.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "QwenReferencePlaceholder.png",
+        "upload": "image"
+      },
+      "title": "🟢 参考图 1｜上传图片（占位图=未选择）",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 11,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        20,
+        1450
+      ],
+      "size": [
+        460,
+        210
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "提取当前图片风格"
+      ],
+      "widgets_values_named": {
+        "value": "提取当前图片风格"
+      },
+      "title": "🟢 参考图 1 说明｜清空则不送入 LLM",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 16,
+      "type": "LoadImage",
+      "pos": [
+        520,
+        930
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1"
+      },
+      "widgets_values": [
+        "QwenReferencePlaceholder.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "QwenReferencePlaceholder.png",
+        "upload": "image"
+      },
+      "title": "🟢 参考图 2｜上传图片（占位图=未选择）",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 12,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        520,
+        1450
+      ],
+      "size": [
+        460,
+        210
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "提取当前图片风格"
+      ],
+      "widgets_values_named": {
+        "value": "提取当前图片风格"
+      },
+      "title": "🟢 参考图 2 说明｜清空则不送入 LLM",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 17,
+      "type": "LoadImage",
+      "pos": [
+        1020,
+        930
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            9
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1"
+      },
+      "widgets_values": [
+        "QwenReferencePlaceholder.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "QwenReferencePlaceholder.png",
+        "upload": "image"
+      },
+      "title": "🟢 参考图 3｜上传图片（占位图=未选择）",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 13,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        1020,
+        1450
+      ],
+      "size": [
+        460,
+        210
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "提取当前图片风格"
+      ],
+      "widgets_values_named": {
+        "value": "提取当前图片风格"
+      },
+      "title": "🟢 参考图 3 说明｜清空则不送入 LLM",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 18,
+      "type": "LoadImage",
+      "pos": [
+        1520,
+        930
+      ],
+      "size": [
+        460,
+        480
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          },
+          "link": null
+        },
+        {
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            10
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "cnr_id": "comfy-core",
+        "ver": "0.33.1"
+      },
+      "widgets_values": [
+        "QwenReferencePlaceholder.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "QwenReferencePlaceholder.png",
+        "upload": "image"
+      },
+      "title": "🟢 参考图 4｜上传图片（占位图=未选择）",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 14,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        1520,
+        1450
+      ],
+      "size": [
+        460,
+        210
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "value",
+          "type": "STRING",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "提取当前图片风格"
+      ],
+      "widgets_values_named": {
+        "value": "提取当前图片风格"
+      },
+      "title": "🟢 参考图 4 说明｜清空则不送入 LLM",
+      "color": "#6b4d1f",
+      "bgcolor": "#3f2f18"
+    },
+    {
+      "id": 4,
+      "type": "QwenH3BilingualDirector",
+      "pos": [
+        2150,
+        260
+      ],
+      "size": [
+        820,
+        1450
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "creative_brief",
+          "type": "STRING",
+          "link": 1,
+          "widget": {
+            "name": "creative_brief"
+          }
+        },
+        {
+          "name": "task_mode",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "task_mode"
+          }
+        },
+        {
+          "name": "expansion_level",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "expansion_level"
+          }
+        },
+        {
+          "name": "extra_requirements",
+          "type": "STRING",
+          "link": 2,
+          "widget": {
+            "name": "extra_requirements"
+          }
+        },
+        {
+          "name": "reference_instruction_1",
+          "type": "STRING",
+          "link": 3,
+          "widget": {
+            "name": "reference_instruction_1"
+          }
+        },
+        {
+          "name": "reference_instruction_2",
+          "type": "STRING",
+          "link": 4,
+          "widget": {
+            "name": "reference_instruction_2"
+          }
+        },
+        {
+          "name": "reference_instruction_3",
+          "type": "STRING",
+          "link": 5,
+          "widget": {
+            "name": "reference_instruction_3"
+          }
+        },
+        {
+          "name": "reference_instruction_4",
+          "type": "STRING",
+          "link": 6,
+          "widget": {
+            "name": "reference_instruction_4"
+          }
+        },
+        {
+          "name": "reference_max_side",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "reference_max_side"
+          }
+        },
+        {
+          "name": "context_length",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "context_length"
+          }
+        },
+        {
+          "name": "gpu_offload",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "gpu_offload"
+          }
+        },
+        {
+          "name": "vision_gpu_offload_cap",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "vision_gpu_offload_cap"
+          }
+        },
+        {
+          "name": "max_output_tokens",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "max_output_tokens"
+          }
+        },
+        {
+          "name": "reasoning",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "reasoning"
+          }
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "temperature"
+          }
+        },
+        {
+          "name": "top_p",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "top_p"
+          }
+        },
+        {
+          "name": "top_k",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "top_k"
+          }
+        },
+        {
+          "name": "min_p",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "min_p"
+          }
+        },
+        {
+          "name": "unload_other_lmstudio_models",
+          "type": "BOOLEAN",
+          "link": null,
+          "widget": {
+            "name": "unload_other_lmstudio_models"
+          }
+        },
+        {
+          "name": "stop_server_after",
+          "type": "BOOLEAN",
+          "link": null,
+          "widget": {
+            "name": "stop_server_after"
+          }
+        },
+        {
+          "name": "timeout_seconds",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "timeout_seconds"
+          }
+        },
+        {
+          "name": "model_key",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "model_key"
+          }
+        },
+        {
+          "name": "lms_exe",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "lms_exe"
+          }
+        },
+        {
+          "name": "reference_image_1",
+          "type": "IMAGE",
+          "link": 7
+        },
+        {
+          "name": "reference_image_2",
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "name": "reference_image_3",
+          "type": "IMAGE",
+          "link": 9
+        },
+        {
+          "name": "reference_image_4",
+          "type": "IMAGE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "中文完善版",
+          "type": "STRING",
+          "links": [
+            11,
+            15
+          ]
+        },
+        {
+          "name": "English H3 Prompt",
+          "type": "STRING",
+          "links": [
+            12,
+            16
+          ]
+        },
+        {
+          "name": "运行状态",
+          "type": "STRING",
+          "links": [
+            13
+          ]
+        },
+        {
+          "name": "原始响应",
+          "type": "STRING",
+          "links": [
+            14
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "QwenH3BilingualDirector"
+      },
+      "widgets_values": [
+        "精致高端树脂手办风，一名明确30岁以上的成年女性，月夜庭院陈列场景，16:9桌面壁纸。请发散补全构图、材质、光影、背景与负面约束。",
+        "文生图 / T2I",
+        "平衡发散 / Balanced",
+        "保持单人、固定镜头、明确成年人；中文与英文内容必须一一对应。",
+        "提取当前图片风格",
+        "提取当前图片风格",
+        "提取当前图片风格",
+        "提取当前图片风格",
+        1024,
+        32768,
+        0.2,
+        0.2,
+        1800,
+        "off",
+        0.65,
+        0.9,
+        30,
+        0.05,
+        true,
+        false,
+        600,
+        "qwen3.6-35b-a3b-uncensored-heretic-nvfp4-experts-only",
+        "C:\\Users\\Administrator\\.lmstudio\\bin\\lms.exe"
+      ],
+      "widgets_values_named": {
+        "creative_brief": "精致高端树脂手办风，一名明确30岁以上的成年女性，月夜庭院陈列场景，16:9桌面壁纸。请发散补全构图、材质、光影、背景与负面约束。",
+        "task_mode": "文生图 / T2I",
+        "expansion_level": "平衡发散 / Balanced",
+        "extra_requirements": "保持单人、固定镜头、明确成年人；中文与英文内容必须一一对应。",
+        "reference_instruction_1": "提取当前图片风格",
+        "reference_instruction_2": "提取当前图片风格",
+        "reference_instruction_3": "提取当前图片风格",
+        "reference_instruction_4": "提取当前图片风格",
+        "reference_max_side": 1024,
+        "context_length": 32768,
+        "gpu_offload": 0.2,
+        "vision_gpu_offload_cap": 0.2,
+        "max_output_tokens": 1800,
+        "reasoning": "off",
+        "temperature": 0.65,
+        "top_p": 0.9,
+        "top_k": 30,
+        "min_p": 0.05,
+        "unload_other_lmstudio_models": true,
+        "stop_server_after": false,
+        "timeout_seconds": 600,
+        "model_key": "qwen3.6-35b-a3b-uncensored-heretic-nvfp4-experts-only",
+        "lms_exe": "C:\\Users\\Administrator\\.lmstudio\\bin\\lms.exe"
+      },
+      "title": "Qwen3.6 视觉双语导演｜参数前缀标明优先级",
+      "color": "#244a66",
+      "bgcolor": "#183347"
+    },
+    {
+      "id": 5,
+      "type": "PreviewAny",
+      "pos": [
+        3120,
+        260
+      ],
+      "size": [
+        900,
+        300
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "中文完善版｜检查与复制",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 6,
+      "type": "PreviewAny",
+      "pos": [
+        3120,
+        650
+      ],
+      "size": [
+        900,
+        300
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "English H3 Prompt｜粘贴到 01 / 02",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 7,
+      "type": "PreviewAny",
+      "pos": [
+        3120,
+        1040
+      ],
+      "size": [
+        900,
+        170
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "运行状态｜参考图计数 + Qwen 已卸载",
+      "color": "#3d3d3d",
+      "bgcolor": "#262626"
+    },
+    {
+      "id": 8,
+      "type": "PreviewAny",
+      "pos": [
+        3120,
+        1270
+      ],
+      "size": [
+        900,
+        170
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 14
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [],
+      "title": "原始响应｜解析失败时排查",
+      "color": "#3d3d3d",
+      "bgcolor": "#262626"
+    },
+    {
+      "id": 9,
+      "type": "SaveText",
+      "pos": [
+        4160,
+        360
+      ],
+      "size": [
+        430,
+        160
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 15
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "format",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveText"
+      },
+      "widgets_values": [
+        "minimax_h3/prompts/zh_prompt",
+        "txt"
+      ],
+      "title": "保存中文完善版 TXT"
+    },
+    {
+      "id": 10,
+      "type": "SaveText",
+      "pos": [
+        4160,
+        750
+      ],
+      "size": [
+        430,
+        160
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 16
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "format",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveText"
+      },
+      "widgets_values": [
+        "minimax_h3/prompts/en_h3_prompt",
+        "txt"
+      ],
+      "title": "保存 English H3 Prompt TXT"
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      4,
+      0,
+      "STRING"
+    ],
+    [
+      2,
+      3,
+      0,
+      4,
+      3,
+      "STRING"
+    ],
+    [
+      3,
+      11,
+      0,
+      4,
+      4,
+      "STRING"
+    ],
+    [
+      4,
+      12,
+      0,
+      4,
+      5,
+      "STRING"
+    ],
+    [
+      5,
+      13,
+      0,
+      4,
+      6,
+      "STRING"
+    ],
+    [
+      6,
+      14,
+      0,
+      4,
+      7,
+      "STRING"
+    ],
+    [
+      7,
+      15,
+      0,
+      4,
+      23,
+      "IMAGE"
+    ],
+    [
+      8,
+      16,
+      0,
+      4,
+      24,
+      "IMAGE"
+    ],
+    [
+      9,
+      17,
+      0,
+      4,
+      25,
+      "IMAGE"
+    ],
+    [
+      10,
+      18,
+      0,
+      4,
+      26,
+      "IMAGE"
+    ],
+    [
+      11,
+      4,
+      0,
+      5,
+      0,
+      "*"
+    ],
+    [
+      12,
+      4,
+      1,
+      6,
+      0,
+      "*"
+    ],
+    [
+      13,
+      4,
+      2,
+      7,
+      0,
+      "*"
+    ],
+    [
+      14,
+      4,
+      3,
+      8,
+      0,
+      "*"
+    ],
+    [
+      15,
+      4,
+      0,
+      9,
+      0,
+      "STRING"
+    ],
+    [
+      16,
+      4,
+      1,
+      10,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "使用说明",
+      "bounding": [
+        0,
+        0,
+        1550,
+        430
+      ],
+      "color": "#315c45",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "🟢 建议调｜中文构思与硬性要求",
+      "bounding": [
+        0,
+        440,
+        1550,
+        400
+      ],
+      "color": "#2f8f5b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "🟢 可选参考图｜图片 + 非空说明才生效",
+      "bounding": [
+        0,
+        880,
+        2020,
+        820
+      ],
+      "color": "#8b662b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 4,
+      "title": "🔵 可调 + 🔴 不建议调｜默认值已实机验证",
+      "bounding": [
+        2110,
+        200,
+        900,
+        1540
+      ],
+      "color": "#3f6f9f",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 5,
+      "title": "输出｜先看中文，再复制英文到 H3",
+      "bounding": [
+        3080,
+        200,
+        1550,
+        1430
+      ],
+      "color": "#2f8f5b",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.57,
+      "offset": [
+        45,
+        45
+      ]
+    },
+    "frontendVersion": "1.48.7"
+  },
+  "version": 0.4
+}

@@ -1,0 +1,506 @@
+{
+  "id": "b6d17df2-022f-4886-a852-a183c9231d5b",
+  "revision": 0,
+  "last_node_id": 8,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        20,
+        10
+      ],
+      "size": [
+        970,
+        300
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "# 03｜已选视频 AI 超分到 4K\n\n把第 2 步最终选中的 MP4 拖入或上传到 LoadVideo。源视频必须是 1024×576（16:9），本流程只等比例输出 3840×2160，**不裁剪、不拉伸**。\n\n- **🟢 建议调：** 输入视频。\n- **🔵 可调：** 输出文件名前缀；AI 每批帧数在本机必须保持 1。\n- **🔴 不建议调：** 3840×2160、Lanczos、24fps、float16、RealESRGAN 模型。\n\n该节点按 1 帧子批次执行 RealESRGAN x4，再等比例缩到 4K。73 帧实测峰值 2.92GiB 显存 / 25.61GiB 内存。不要改成整批 ImageScale：实测会把 32GB 内存吃满。H3 与超分分开运行，不会同时占显存。"
+      ],
+      "title": "使用说明",
+      "color": "#315c45",
+      "bgcolor": "#111111"
+    },
+    {
+      "id": 2,
+      "type": "LoadVideo",
+      "pos": [
+        20,
+        370
+      ],
+      "size": [
+        540,
+        380
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "file",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadVideo"
+      },
+      "widgets_values": [
+        "H3_I2V_Draw_Test_73f_1024x576.mp4"
+      ],
+      "title": "🟢 建议调｜上传最终选中的 1024×576 MP4",
+      "color": "#1f5d3a",
+      "bgcolor": "#163a29"
+    },
+    {
+      "id": 3,
+      "type": "GetVideoComponents",
+      "pos": [
+        650,
+        470
+      ],
+      "size": [
+        280,
+        110
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "name": "frame_count",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetVideoComponents"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 4,
+      "type": "UpscaleModelLoader",
+      "pos": [
+        1050,
+        360
+      ],
+      "size": [
+        430,
+        90
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model_name",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "UPSCALE_MODEL",
+          "type": "UPSCALE_MODEL",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UpscaleModelLoader"
+      },
+      "widgets_values": [
+        "RealESRGAN_x4plus.pth"
+      ],
+      "title": "🔴 RealESRGAN x4plus（不要换）",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 5,
+      "type": "ImageUpscaleWithModelBatched",
+      "pos": [
+        1550,
+        350
+      ],
+      "size": [
+        500,
+        200
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "upscale_model",
+          "type": "UPSCALE_MODEL",
+          "link": 3
+        },
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "name": "per_batch",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "downscale_ratio",
+          "type": "FLOAT",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "downscale_method",
+          "type": "COMBO",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "precision",
+          "type": "COMBO",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageUpscaleWithModelBatched"
+      },
+      "widgets_values": [
+        1,
+        1.0,
+        "lanczos",
+        "float16"
+      ],
+      "title": "🔵 AI 分批：per_batch=1（不要增大）",
+      "color": "#244a66",
+      "bgcolor": "#183347"
+    },
+    {
+      "id": 6,
+      "type": "ImageScale",
+      "pos": [
+        2140,
+        380
+      ],
+      "size": [
+        430,
+        150
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "upscale_method",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": null
+        },
+        {
+          "name": "crop",
+          "type": "COMBO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageScale"
+      },
+      "widgets_values": [
+        "lanczos",
+        3840,
+        2160,
+        "disabled"
+      ],
+      "title": "🔴 等比例缩到 3840×2160｜不裁剪",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 7,
+      "type": "CreateVideo",
+      "pos": [
+        2690,
+        390
+      ],
+      "size": [
+        340,
+        120
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "fps",
+          "type": "FLOAT",
+          "link": null
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "bit_depth",
+          "type": "INT",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CreateVideo"
+      },
+      "widgets_values": [
+        24.0,
+        8
+      ],
+      "title": "🔴 固定 24fps / 8-bit / 静音",
+      "color": "#663333",
+      "bgcolor": "#452525"
+    },
+    {
+      "id": 8,
+      "type": "SaveVideo",
+      "pos": [
+        3130,
+        320
+      ],
+      "size": [
+        820,
+        260
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 6
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "format",
+          "type": "COMBO",
+          "link": null
+        },
+        {
+          "name": "codec",
+          "type": "COMFY_DYNAMICCOMBO_V3",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "minimax_h3/ui_4k/final_3840x2160",
+        "mp4",
+        "auto"
+      ],
+      "title": "🔵 可调输出名｜保存 3840×2160 MP4"
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      3,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      3,
+      0,
+      5,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      4,
+      0,
+      5,
+      0,
+      "UPSCALE_MODEL"
+    ],
+    [
+      4,
+      5,
+      0,
+      6,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      6,
+      0,
+      7,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      7,
+      0,
+      8,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "🟢 建议调：输入视频",
+      "bounding": [
+        0,
+        340,
+        970,
+        450
+      ],
+      "color": "#2f855a",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "🔵/🔴 分批 AI 超分：per_batch 固定 1",
+      "bounding": [
+        1020,
+        310,
+        1590,
+        290
+      ],
+      "color": "#9b3d3d",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "输出：3840×2160，不裁剪",
+      "bounding": [
+        2660,
+        280,
+        1330,
+        340
+      ],
+      "color": "#8b6b32",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.68,
+      "offset": [
+        160,
+        130
+      ]
+    }
+  },
+  "version": 0.4
+}

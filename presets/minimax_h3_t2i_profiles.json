@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "default_profile": "figurine_live2d",
+  "profiles": {
+    "pseudo_t2i": {
+      "width": 1024,
+      "height": 576,
+      "temporal_frames": 5,
+      "steps": 20,
+      "sampler": "res_multistep",
+      "scheduler": "simple",
+      "selected_frame": 0,
+      "default_seed": 2026083003,
+      "image_hmnsfw_strength": 0.0,
+      "description": "Generate a five-frame H3 packet and save frame 0 as the still"
+    },
+    "figurine_live2d": {
+      "image_seed": 2026083003,
+      "video_seed": 2026082904,
+      "selected_frame": 0,
+      "image_hmnsfw_strength": 0.0,
+      "motion_hmnsfw_strength": 0.5,
+      "video_width": 1024,
+      "video_height": 576,
+      "video_frames": 73,
+      "video_fps": 24,
+      "video_steps": 20,
+      "description": "Default end-to-end text -> H3 still -> H3 Live2D draft"
+    }
+  }
+}

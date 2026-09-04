@@ -1,0 +1,130 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {
+      "image": "keqing_gpt_reference_16x9.png"
+    }
+  },
+  "2": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_fp16.safetensors"
+    }
+  },
+  "6": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "clip": ["3", 0],
+      "vae": ["4", 0],
+      "prompt": "hmmotion. One continuous locked-off 16:9 shot. Preserve the source character identity, facial proportions, purple-red iris color, costume structure, accessories, pose, background composition, lighting, and fine line details exactly. The character remains fully visible. Use coherent low-amplitude motion distributed across the whole character: subtle breathing in shoulders and upper torso, a very small natural weight shift, gentle secondary motion in hair tips, ribbons, skirt hems, tassels and translucent fabric, faint coordinated movement in flower petals and violet electro particles. Keep the head and torso physically connected and moving as one body. Keep both eyes open, sharp, symmetrical and looking in the same direction throughout this short test. Camera and background remain stable. Crisp temporal detail, clean edges, stable face, stable hands, stable costume patterns.\n\nAvoid large gestures, abrupt motion, camera movement, zoom, pan, orbit, reframing, scene cuts, morphing, face drift, eye-color change, blinking during this short test, crossed eyes, deformed pupils, body-layer sliding, detached head motion, rubber deformation, flicker, motion blur, trailing, ghosting, double images, smeared details, melting accessories, duplicated limbs, text, logo, watermark.\n",
+      "width": 1920,
+      "height": 1088,
+      "length": 90,
+      "first_frame": ["18", 0]
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {
+      "model": ["16", 0],
+      "conditioning": ["6", 0]
+    }
+  },
+  "8": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": ["16", 0],
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1.0
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {
+      "sampler_name": "res_multistep"
+    }
+  },
+  "10": {
+    "class_type": "RandomNoise",
+    "inputs": {
+      "noise_seed": 2026083022
+    }
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["10", 0],
+      "guider": ["7", 0],
+      "sampler": ["9", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["6", 1]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": {
+      "samples": ["11", 0],
+      "vae": ["4", 0]
+    }
+  },
+  "16": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["2", 0],
+      "lora_name": "HMNSFW-AIO-V2.5.safetensors",
+      "strength_model": 0.5
+    }
+  },
+  "17": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["1", 0],
+      "upscale_method": "lanczos",
+      "width": 1920,
+      "height": 1088,
+      "crop": "disabled"
+    }
+  },
+  "18": {
+    "class_type": "ImageSharpen",
+    "inputs": {
+      "image": ["17", 0],
+      "sharpen_radius": 1,
+      "sigma": 0.7,
+      "alpha": 0.15
+    }
+  },
+  "19": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["12", 0],
+      "upscale_method": "lanczos",
+      "width": 1920,
+      "height": 1080,
+      "crop": "disabled"
+    }
+  },
+  "20": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["19", 0],
+      "filename_prefix": "minimax_h3_1080_stream/PLACEHOLDER_RUN_ID/frame"
+    }
+  }
+}

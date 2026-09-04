@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "route": "native_1080p_frame_sequence_plus_external_encode",
+  "target_instance": {
+    "comfyui_version_prefix": "0.34",
+    "documented_api": "http://127.0.0.1:8189",
+    "note": "The plan documents port 8189 for the 0.34 test instance. Comfy Desktop may expose it on 8188 when the 0.33.1 main instance is not running, so the runner verifies comfyui_version instead of trusting the port."
+  },
+  "invariants": {
+    "workflow": "workflows/minimax_h3_live2d_frames_api.json",
+    "input_image": "keqing_gpt_reference_16x9.png",
+    "prompt_file": "prompts/MINIMAX_H3_1080P_FEASIBILITY_PROMPT.md",
+    "prompt_file_sha256": "9BE85452C6E0616479F6A4D90B7FB9793FB7D520FF6802B966EBA5F2D67C1599",
+    "seed": 2026083022,
+    "steps": 20,
+    "sampler": "res_multistep",
+    "scheduler": "simple",
+    "lora_strength": 0.5,
+    "internal_width": 1920,
+    "internal_height": 1088,
+    "output_width": 1920,
+    "output_height": 1080,
+    "silent": true,
+    "note": "Only the output stage changes relative to the CreateVideo/SaveVideo route, so every number here is comparable with artifacts/h3_1080_probe_*_run.json."
+  },
+  "safety": {
+    "ram_abort_gib": 31.0,
+    "recommended_headroom_gib": 0.75,
+    "total_physical_ram_gib": 31.11,
+    "serial_only": true,
+    "free_before_run": true,
+    "free_before_encode": true
+  },
+  "encoding": {
+    "codec": "libx264",
+    "h264_profile": "high",
+    "h264_level": "4.2",
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "pixel_format": "yuv420p",
+    "crf": 18,
+    "encoder_preset": "slow",
+    "tune": "animation",
+    "faststart": true,
+    "audio": false,
+    "fidelity_gates": {
+      "min_mean_luma_psnr_db": 38.0,
+      "min_mean_psnr_db": 34.0,
+      "max_mean_mad": 3.5,
+      "measured_baseline_note": "The 5-frame reference run encoded at luma PSNR 40.66 dB / RGB PSNR 37.57 dB / MAD 2.349 against its own PNGs, so these gates sit below the observed CRF 18 baseline rather than above it."
+    }
+  },
+  "frames": {
+    "output_subfolder_root": "minimax_h3_1080_stream",
+    "filename_prefix_leaf": "frame",
+    "filename_pattern": "frame_<counter:05>_.png",
+    "counter_origin": 1,
+    "counter_origin_note": "Native ComfyUI SaveImage numbers a batch from 1, not 0. The plan's frame_00000 shape is not reachable without a custom output node, so the validator requires a contiguous 1..frames run inside a per-run directory instead."
+  },
+  "profiles": {
+    "1080_stream_5": {
+      "length": 5,
+      "stage": "phase1_smoke",
+      "description": "Five-frame frame-sequence smoke test; confirms wiring, naming and per-run isolation."
+    },
+    "1080_stream_22": {
+      "length": 22,
+      "stage": "phase1_smoke",
+      "description": "Twenty-two-frame frame-sequence smoke test; first profile with a CreateVideo baseline to compare peaks against."
+    },
+    "1080_stream_73": {
+      "length": 73,
+      "stage": "phase2_reference",
+      "description": "Seventy-three-frame rerun of the last profile the CreateVideo route completed; optional direct A/B of peak RAM."
+    },
+    "1080_stream_90": {
+      "length": 90,
+      "stage": "phase3_target",
+      "description": "Ninety frames / 3.75 seconds. The CreateVideo route died here at 31.11 GiB; this is the first acceptance target of the streaming route."
+    },
+    "1080_stream_107": {
+      "length": 107,
+      "stage": "phase4_probe",
+      "description": "One hundred and seven frames / 4.46 seconds. Run only after 90 frames fully passes."
+    },
+    "1080_stream_124": {
+      "length": 124,
+      "stage": "phase4_probe",
+      "description": "One hundred and twenty-four frames / 5.17 seconds. Run only after 107 frames fully passes."
+    }
+  },
+  "classification": {
+    "recommended": "Completed with at least 0.75 GiB physical RAM headroom at every stage peak.",
+    "boundary": "Completed, but some stage peak left less than 0.75 GiB headroom; human-supervised runs only.",
+    "negative_control": "Hit the RAM abort or needed pagefile pressure to finish; evidence only, never in the daily menu."
+  }
+}
