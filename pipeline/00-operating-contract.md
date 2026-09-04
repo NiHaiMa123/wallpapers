@@ -1,91 +1,106 @@
 # 00 执行契约
 
-本文件是整套 pipeline 的统一入口。任何 Agent 在处理本项目任务时先执行这里的判断，再进入具体阶段。
-
-## 工作边界
-
-- 本 pipeline 只覆盖仓库中已经存在的本地 MiniMax H3 / ComfyUI 能力。
-- ComfyUI 是渲染器，不负责理解需求、选择路线、写提示词、筛 seed 或验收。
-- 不声称支持当前本地工作流没有暴露的在线参考图、参考视频或参考音频角色。
-- 优先复用 `scripts/`、`workflows/`、`presets/`、prompt 模板和 validators。
-- 不临时拼装未经验证的工作流，不把手工 API payload 当作日常入口。
-- 所有长任务保留 `31.0GiB` RAM 熔断；达到阈值立即请求中断，不以接近 32GiB 物理上限为由继续冒险。
+本文件是当前 pipeline 的统一入口。具体角色定义以根 `AGENTS.md` 为准。
 
 ## 工作模式
 
-### PLAN
+- `PLAN`：只做导演方案、路线、prompt、seed 策略和验收计划，不提交 ComfyUI。
+- `DIAGNOSE`：分析已有输入、输出和报告，不自动扩展成新生成任务。
+- `REVIEW`：检查候选并给出技术/视觉结论，不替用户越过人工 Gate。
+- `EXECUTE`：运行当前最小且有意义的生产阶段。
 
-只输出创意简报、路线、提示词、seed 梯度、预计命令、验收条件和风险；不提交 ComfyUI。
+## 当前主路线
 
-### DIAGNOSE
+```text
+Director Brief
+  -> T2I
+  -> Gate A 用户选图
+  -> Motion Direction
+  -> Low-res Seed Screen
+  -> Gate B 用户选 seed
+  -> 1080p / 73f Take
+  -> Gate C 用户选 take
+  -> Export All Frames
+  -> Gate D 用户选 keep frames
+  -> Rebuild
+  -> Interpolate
+  -> Upscale
+  -> Final QC
+  -> Delivery
+```
 
-读取输入、配置、队列、报告和输出证据，确定原因；除非用户同时要求修复或执行，否则不提交新任务。
+已有并被用户认可的输入图可以跳过 T2I / Gate A。
 
-### REVIEW
+## 人工 Gate 契约
 
-检查已有图片、视频、运行报告或循环结果，给出 `PASS/REJECT/BLOCKED`；不把评审自动扩展为重新生成。
+人工 Gate 的状态不是 `PASS`，而是：
 
-### EXECUTE
+```text
+WAITING_FOR_USER_SELECTION
+SELECTED
+```
 
-用户明确要求生成、制作或运行时，从预检开始，执行当前最小且能推进目标的阶段。便宜阶段仍有未解决问题时，不启动昂贵 final。
+Agent 可以：
 
-## 每个任务的固定顺序
+- 初筛明显错误候选；
+- 排序；
+- 给推荐；
+- 提供 MAD/光流/速度等辅助证据。
 
-1. 盘点输入、目标、动作、循环、分辨率、静音/音频和 LoRA 意图。
-2. 只选择一条主路线。
-3. 检查输入并设计 motion contract。
-4. 把可执行 prompt 保存到 `prompts/generated/`。
-5. 建立 seed 梯度。
-6. 检查 API、版本、队列、节点、内存和目标文件。
-7. 只通过仓库 runner 串行执行。
-8. 保存命令、prompt、seed、profile、API、LoRA、输出和报告证据。
-9. 对实际输出进行技术检查和正常速度视觉检查。
-10. 只有当前阶段 `PASS` 才能晋级。
+Agent 不可以：
 
-## 唯一主路线
+- 自己代替用户最终选静态图；
+- 自己代替用户最终选 video seed；
+- 自己代替用户最终选 1080p take；
+- 根据自动速度指标擅自决定最终留删帧。
 
-同一时刻只允许一条主路线。探索性备选只写在计划里，不并发提交。
+## 全局执行规则
 
-优先级：
+- 同一时刻只跑一个生产任务。
+- 复用已验证 runner/workflow/preset，不临时拼装生产工作流。
+- 默认静音和固定镜头。
+- 常规长任务保留 `31.0GiB` RAM 熔断。
+- 不覆盖输入、prompt、视频、帧列、报告或失败证据。
+- 进程成功不等于视觉通过。
+- 低画质 seed 通过不等于 1080p take 通过。
+- 自动分析不等于用户留帧决定。
+- 身份/解剖/硬质结构生成错误回到生成阶段，不交给插帧或超分修复。
 
-- 外部图片做微动画：Turbo 筛选 → 标准 `draft` → `long_draft` → `final`。
-- 文本生成首图：`run_h3_pseudo_t2i.ps1`。
-- 文本首图再做视频：`run_h3_text_to_live2d.ps1`，质量优先时拆开首图与视频 seed 筛选。
-- 稳健循环交付：Turbo 只做粗筛，标准 `draft`、`long_draft` 和 `final` 全部使用 `-LoopLock` 原生首尾锚定。
-- 原生 1080p 直接循环：先用支持 `-LoopLock` 的批量短档；逐帧路线只有增加 `last_frame` 并重新验证后才能接手循环交付。
-- 4K：先通过源循环验收，再默认使用 `temporal_safe`。
+## 禁止自动扩展
 
-## 禁止自动扩展的操作
-
-没有单独授权时，不执行：
+没有用户额外授权时，不执行：
 
 - 下载模型或安装节点；
-- 修改 ComfyUI 安装目录或实例；
-- 提高 RAM 熔断或运行负对照边界档；
-- 覆盖或删除输入、样片、帧目录、报告和历史证据；
-- 改用仓库未验证的新工作流；
-- 为了加速而并发运行 H3、Qwen 或其他大型模型。
-
-## 阶段判定
-
-- `PASS`：技术完成且视觉满足当前门槛，可以晋级。
-- `REJECT`：产物存在，但身份、解剖、镜头、动作或循环不合格；回到能改变问题的最近阶段。
-- `BLOCKED`：环境、节点、输入、资源或权限阻止判断；报告精确阻碍和安全降级路线。
-
-进程退出码为 0 只表示运行完成，不自动等于 `PASS`。
+- 修改 ComfyUI 实例/安装目录；
+- 提高 RAM 熔断；
+- 删除或覆盖历史文件；
+- 切换到仓库未验证的工作流；
+- 运行负对照或高风险边界实验。
 
 ## 完成契约
 
-### 规划类任务
+### 规划任务
 
-交付创意简报、唯一主路线、可执行 prompt、seed 梯度、预计命令、验收标准、风险和未决问题。
+交付：Director Brief、主路线、T2I/I2V prompt 方案、seed 筛选策略、人工 Gate、风险。
 
-### 执行类任务
+### 执行任务
 
-交付实际运行命令、profile、seed、prompt、输入、API、LoRA、静音设置、成片、报告、验证结果、视觉缺陷和下一项合理升级。
+交付必须能追溯：
 
-不得把未运行的命令描述成已完成，不得把未经边界观看和技术检查的原生循环描述成已经验证的循环成片。
+```text
+Director Brief
+-> selected image
+-> selected video seed
+-> selected 1080p take
+-> user keep list
+-> interpolation
+-> upscale
+-> final QC
+-> final output
+```
 
-## 进入下一阶段
+不得把 Agent 推荐写成用户已选择，也不得把未执行的命令写成已完成。
 
-完成本文件的模式与边界判断后，进入 `01-intake-and-routing.md`。
+## 下一阶段
+
+从 `01-intake-and-director.md` 开始。
