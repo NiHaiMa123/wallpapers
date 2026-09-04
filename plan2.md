@@ -1,3 +1,6 @@
+> [!WARNING]
+> **NON-NORMATIVE HISTORICAL EVIDENCE.** 本文件记录 2026-09-03~04 的变速/equalize/remap 实验与当时定稿，不定义当前生产主线。当前 Gate D 之后默认遵循 `contracts/05-frame-sequence-selection.md` 与 `contracts/06-interpolation.md`：用户 keep list 是时间轴事实，未明确授权时不自动 equalize、tail compression 或 remap。若本文证据提示当前 Contract 有问题，应提交 `CONTRACT_REVIEW_REQUIRED` 给主 Agent，而不是直接恢复本文方案。
+
 # 变速调节链路修复计划（plan2）——✅ 2026-09-04 封版（65f 定稿交付候选）
 
 > 来源：2026-09-03 代码评审。对象：`scripts/retime_video_no_interpolation.py`、
