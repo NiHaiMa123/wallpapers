@@ -231,7 +231,7 @@ H3 latent
 | `scripts/run_h3_1080_stream_escalation.ps1` | 按帧数递增，首次失败即停 |
 | `scripts/encode_h3_frame_sequence.py` | 逐帧流式编码为 H.264，先写 `.part.mp4`，验收后原子发布 |
 | `scripts/validate_h3_frame_sequence.py` | 数量、连续编号、尺寸、可解码性、黑帧、纯色帧；同时最多驻留三帧 |
-| `scripts/compare_h3_frames_to_video.py` | 帧序列与参考 MP4 的 PSNR/MAD 对比；计划外新增 |
+| `scripts/experimental/compare_h3_frames_to_video.py` | 帧序列与参考 MP4 的 PSNR/MAD 对比；计划外新增 |
 | `presets/minimax_h3_1080_stream_profiles.json` | 5/22/73/90/107/124 档位、冻结不变量、保真度门槛、分级规则 |
 
 ### 10.2 各档结果

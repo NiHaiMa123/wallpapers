@@ -105,7 +105,7 @@ implementation_changed: false
 
 ## 6. 历史证据的正确用途
 
-`plans/` 中的历史证据（含 `VALIDATION_HISTORY.md`、`plan2.md`）可以用于：
+`history/` 中的历史证据（含 `VALIDATION_HISTORY.md`、`plan2.md`）可以用于：
 
 - 证明某个技术约束曾经出现；
 - 提供性能/失败证据；

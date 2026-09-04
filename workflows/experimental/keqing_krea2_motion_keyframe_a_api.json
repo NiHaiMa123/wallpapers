@@ -1,0 +1,132 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": { "image": "keqing_krea2_identity_edit_16x9.png" }
+  },
+  "2": {
+    "class_type": "ImageScaleToTotalPixels",
+    "inputs": {
+      "image": ["1", 0],
+      "upscale_method": "lanczos",
+      "megapixels": 1.0,
+      "resolution_steps": 8
+    }
+  },
+  "3": {
+    "class_type": "VAELoader",
+    "inputs": { "vae_name": "qwen_image_vae.safetensors" }
+  },
+  "4": {
+    "class_type": "VAEEncode",
+    "inputs": { "pixels": ["2", 0], "vae": ["3", 0] }
+  },
+  "5": {
+    "class_type": "EmptySD3LatentImage",
+    "inputs": { "width": 1344, "height": 768, "batch_size": 1 }
+  },
+  "6": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "Krea2\\krea2_turbo_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "7": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["6", 0],
+      "lora_name": "Krea2-功能\\Krea2-编辑identity_edit_v1_2.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "8": {
+    "class_type": "CreateShapeMask",
+    "inputs": {
+      "shape": "circle",
+      "frames": 1,
+      "location_x": 752,
+      "location_y": 176,
+      "grow": 24,
+      "frame_width": 1344,
+      "frame_height": 768,
+      "shape_width": 244,
+      "shape_height": 224
+    }
+  },
+  "9": {
+    "class_type": "Krea2EditModelPatch",
+    "inputs": {
+      "model": ["7", 0],
+      "source_latent": ["4", 0],
+      "ref_boost": 4.0,
+      "fit_mode": "fit",
+      "vae": ["3", 0],
+      "source_image": ["2", 0],
+      "target_latent": ["5", 0]
+    }
+  },
+  "10": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_4b_fp8_scaled.safetensors",
+      "type": "krea2",
+      "device": "default"
+    }
+  },
+  "11": {
+    "class_type": "Krea2EditGroundedEncode",
+    "inputs": {
+      "clip": ["10", 0],
+      "image": ["2", 0],
+      "grounding_px": 768,
+      "system_prompt": "Preserve exact character identity, facial geometry, magenta-purple iris color, costume construction, sword, body pose, camera and background. Treat this as a neighboring animation keyframe, not a redesign.",
+      "prompt": "Create a very subtle neighboring animation keyframe. Keep the head, torso, hips, arms, hands, legs, feet, sword and complete silhouette in exactly the same positions. Do not translate or rotate the character. Change only secondary elements independently: make the eyelids a natural half-blink while keeping both magenta-purple irises unchanged; let only the outer hair tips, loose sleeve hems, skirt ruffle tips, ribbon ends and tiny ornaments drift a few pixels toward viewer-right with different lag; slightly reshape the existing violet lightning and shift a few existing petals. Keep the whole background and camera pixel-stable. No new objects, no anatomy changes, no blur, no ghosting."
+    }
+  },
+  "12": {
+    "class_type": "Krea2EditGroundedEncode",
+    "inputs": {
+      "clip": ["10", 0],
+      "image": ["2", 0],
+      "grounding_px": 768,
+      "system_prompt": "Preserve the source image.",
+      "prompt": ""
+    }
+  },
+  "13": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["9", 0],
+      "positive": ["11", 0],
+      "negative": ["12", 0],
+      "latent_image": ["5", 0],
+      "seed": 2026083019,
+      "steps": 10,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0
+    }
+  },
+  "14": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["13", 0], "vae": ["3", 0] }
+  },
+  "15": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["14", 0],
+      "upscale_method": "lanczos",
+      "width": 1920,
+      "height": 1080,
+      "crop": "disabled"
+    }
+  },
+  "16": {
+    "class_type": "SaveImage",
+    "inputs": {
+      "images": ["15", 0],
+      "filename_prefix": "keyframe_vfi/krea2_motion_phase_a_refboost4"
+    }
+  }
+}

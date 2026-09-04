@@ -1,66 +1,24 @@
-# Runtime artifacts
+# Runtime artifacts and evidence (large, per-run, never tracked)
 outputs/
 artifacts/
 reports/
-keqinglog/
 logs/
 inputs/
 tmp/
-*.log
+keqinglog/
 
-# Frozen copies / experiments
+# Machine-local config (tracked template: *.example.yaml)
+config/*.local.yaml
+
+# Local-only copies that intentionally do not belong to the repo
+MiniMax-H3-Skills-网盘版/
+动态壁纸工作流/
 backups/
 vendor_audit/
 legacy/
 .agents/
 
-# Task notes (archived on disk under plans/, not part of the repo)
-plans/plan.md
-plans/plan_v2.md
-plans/图生视频_Gemini执行手册.md
-plans/帧数速度表.md
-
-# Prompt iteration history (templates stay tracked; history lives in prompts/archive/ on disk)
-prompts/archive/
-
-# Experimental workflows not on the pipeline route
-workflows/keqing_keyframe_rife_1080p_api.json
-workflows/keqing_krea2_motion_keyframe_a_api.json
-workflows/minimax_h3_i2v_baseline_api.json
-workflows/minimax_h3_i2v_hmnsfw_v25_api.json
-workflows/minimax_h3_i2v_native_looplock_api.json
-
-# Experimental / per-task scripts
-scripts/add_elegant_sword_filaments.py
-scripts/analyze_4k_upscale.py
-scripts/analyze_h3_motion_aesthetics.py
-scripts/analyze_h3_t2i_batch.py
-scripts/analyze_motion_uniformity_off.py
-scripts/analyze_text_to_live2d.py
-scripts/build_seamless_wallpaper.py
-scripts/compare_h3_frames_to_video.py
-scripts/compare_h3_performance.py
-scripts/diag_rife_pair.py
-scripts/make_video_comparison_sheet.py
-scripts/make_video_crop_sheet.py
-scripts/replace_last_with_first.py
-scripts/resample_video_to_fps.py
-scripts/run_h3_window_probe.py
-scripts/run_krea2_identity_edit.ps1
-scripts/screen_h3_loop_candidates.py
-
-# Python cache
+# Caches and transient files
 __pycache__/
 *.pyc
-
-# Skill pack copy (network-disk version), not part of the pipeline
-MiniMax-H3-Skills-网盘版/
-
-# Legacy UI workflow, superseded by workflows/ui/
-动态壁纸工作流/
-
-# Generic ComfyUI payload submitter, superseded by profile runners
-scripts/run_h3_generate.py
-
-# Keyframe VFI builder for the deprecated keqing mirror route
-scripts/build_keqing_vfi_keyframes.py
+*.log

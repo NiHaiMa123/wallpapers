@@ -8,7 +8,7 @@
 
 **旧结论**
 
-`plans/H3_1080_LOOP_STRATEGY_NOTES.md` 写“镜像回放已定案/锁定”。
+`history/H3_1080_LOOP_STRATEGY_NOTES.md` 写“镜像回放已定案/锁定”。
 
 **当前决议**
 

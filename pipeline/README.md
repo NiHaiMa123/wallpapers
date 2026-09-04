@@ -128,4 +128,4 @@ next_stage:
 
 ## 历史文档
 
-旧版 `01-intake-and-routing.md` 到 `10-failure-recovery.md` 仅保留路径兼容与迁移提示。`../plans/`（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）是 NON-NORMATIVE 历史证据；其中即使写有“定案/默认/推荐”，也不能改变本 Pipeline。
+旧版 `01-intake-and-routing.md` 到 `10-failure-recovery.md` 仅保留路径兼容与迁移提示。`../history/`（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）是 NON-NORMATIVE 历史证据；其中即使写有“定案/默认/推荐”，也不能改变本 Pipeline。

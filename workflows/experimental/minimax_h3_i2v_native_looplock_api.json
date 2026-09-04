@@ -1,0 +1,113 @@
+{
+  "1": {
+    "class_type": "LoadImage",
+    "inputs": {"image": "keqing_gpt_reference_16x9.png"}
+  },
+  "2": {
+    "class_type": "UNETLoader",
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "inputs": {"vae_name": "minimax_h3_video_vae_fp16.safetensors"}
+  },
+  "6": {
+    "class_type": "MiniMaxH3ImageToVideo",
+    "inputs": {
+      "clip": ["3", 0],
+      "vae": ["4", 0],
+      "prompt": "hmmotion. One continuous locked-off 16:9 shot of the same clearly adult anime game character. Preserve the exact face, purple-red iris color, hairstyle, costume, sword, anatomy, pose, lighting and environment from the reference image. Create a coherent living-character micro-animation: a brief natural blink, subtle breathing shared by the head, neck, shoulders and upper torso, tiny coordinated posture settling, gentle secondary motion in the twin tails, skirt hems and ribbons, softly pulsing purple electricity, a few drifting petals, and very slight depth-aware atmospheric movement in distant haze and reflections. Every moving region remains physically connected to the same character; the head, torso, costume and background must not behave as separate sliding layers. Motion has low amplitude but is distributed across several details. Return smoothly to the exact starting pose at the final frame for a seamless loop. Locked camera, no zoom, no pan, no orbit, no cuts, no morphing, no eye-color change, no facial deformation, no duplicated limbs, no text, no subtitles.",
+      "width": 1024,
+      "height": 576,
+      "length": 73,
+      "first_frame": ["18", 0],
+      "last_frame": ["18", 0]
+    }
+  },
+  "7": {
+    "class_type": "BasicGuider",
+    "inputs": {"model": ["16", 0], "conditioning": ["6", 0]}
+  },
+  "8": {
+    "class_type": "BasicScheduler",
+    "inputs": {
+      "model": ["16", 0],
+      "scheduler": "simple",
+      "steps": 20,
+      "denoise": 1.0
+    }
+  },
+  "9": {
+    "class_type": "KSamplerSelect",
+    "inputs": {"sampler_name": "res_multistep"}
+  },
+  "10": {
+    "class_type": "RandomNoise",
+    "inputs": {"noise_seed": 2026083019}
+  },
+  "11": {
+    "class_type": "SamplerCustomAdvanced",
+    "inputs": {
+      "noise": ["10", 0],
+      "guider": ["7", 0],
+      "sampler": ["9", 0],
+      "sigmas": ["8", 0],
+      "latent_image": ["6", 1]
+    }
+  },
+  "12": {
+    "class_type": "VAEDecode",
+    "inputs": {"samples": ["11", 0], "vae": ["4", 0]}
+  },
+  "14": {
+    "class_type": "CreateVideo",
+    "inputs": {"images": ["12", 0], "fps": 24.0, "bit_depth": 8}
+  },
+  "15": {
+    "class_type": "SaveVideo",
+    "inputs": {
+      "video": ["14", 0],
+      "filename_prefix": "minimax_h3/native_looplock_1024x576_73f_s050_seed2026083019",
+      "format": "auto",
+      "codec": "auto"
+    }
+  },
+  "16": {
+    "class_type": "LoraLoaderModelOnly",
+    "inputs": {
+      "model": ["2", 0],
+      "lora_name": "HMNSFW-AIO-V2.5.safetensors",
+      "strength_model": 0.5
+    }
+  },
+  "17": {
+    "class_type": "ImageScale",
+    "inputs": {
+      "image": ["1", 0],
+      "upscale_method": "lanczos",
+      "width": 1024,
+      "height": 576,
+      "crop": "center"
+    }
+  },
+  "18": {
+    "class_type": "ImageSharpen",
+    "inputs": {
+      "image": ["17", 0],
+      "sharpen_radius": 1,
+      "sigma": 0.7,
+      "alpha": 0.15
+    }
+  }
+}

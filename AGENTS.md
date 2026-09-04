@@ -39,7 +39,7 @@ ComfyUI 与本仓库实现代码负责已经确定的推理和后处理：T2I、
 4. `contracts/README.md` 与具体 Contract：回答“一个执行能力必须保证什么”；
 5. `scripts/`、`workflows/`、`presets/`、validators：当前实现；
 6. `README.md`：人类入口与当前能力说明；
-7. `plans/`（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）：**NON-NORMATIVE 历史证据**。
+7. `history/`（含 `VALIDATION_HISTORY.md`、`plan2.md` 及全部历史计划）：**NON-NORMATIVE 历史证据**。
 
 Pipeline 与 Contract 管不同维度。若二者出现真正语义冲突，不允许 subagent自行选择一边，应上报主 Agent。
 
@@ -226,7 +226,7 @@ Director Brief
 
 ## 11. 历史文档
 
-`plans/` 中的全部文件（含 `VALIDATION_HISTORY.md`、`plan2.md`）只记录当时的实验事实和推理。即使其中出现“定案”“默认”“推荐”等词，也不能覆盖当前 normative MD。
+`history/` 中的全部文件（含 `VALIDATION_HISTORY.md`、`plan2.md`）只记录当时的实验事实和推理。即使其中出现“定案”“默认”“推荐”等词，也不能覆盖当前 normative MD。
 
 历史证据可以触发 Contract Review，但 Contract 只能由主 Agent受控修改。
 

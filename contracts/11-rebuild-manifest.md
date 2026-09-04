@@ -18,7 +18,7 @@ AGENTS.md
 -> 当前阶段对应 Contract
 ```
 
-`plans/`（含 `VALIDATION_HISTORY.md`）只在需要历史证据/回归基线时读取。
+`history/`（含 `VALIDATION_HISTORY.md`）只在需要历史证据/回归基线时读取。
 
 ## 1. Runtime foundation
 

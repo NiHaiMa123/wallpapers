@@ -1,0 +1,24 @@
+# Machine-local ComfyUI shared-model layout — TEMPLATE.
+#
+# Copy this file to comfyui_shared_models.local.yaml and fill in the real
+# base_path for THIS machine. The *.local.yaml copy is gitignored and never
+# committed.
+#
+# Agent rule (contracts/01-runtime.md): always probe the live ComfyUI
+# instance for version/capabilities. This file is a convenience declaration
+# of where models live on this machine; it is NOT a permanent spec, and no
+# port/path in it may be treated as a contract.
+
+shared_models:
+  base_path: <COMFYUI_SHARED_PATH>   # e.g. a directory containing models/
+  is_default: true
+  checkpoints: models/checkpoints/
+  diffusion_models: models/diffusion_models/
+  text_encoders: models/text_encoders/
+  clip: models/clip/
+  clip_vision: models/clip_vision/
+  vae: models/vae/
+  loras: models/loras/
+  upscale_models: models/upscale_models/
+  frame_interpolation: models/frame_interpolation/
+  model_patches: models/model_patches/

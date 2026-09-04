@@ -1,0 +1,28 @@
+MODE: Generate with references
+OUTPUT INTENT: Polished 16:9 desktop wallpaper
+
+REFERENCE ROLES
+- Image 1 is POSE AND COMPOSITION REFERENCE ONLY: reproduce the official figurine's elegant full-body sword pose — arms crossing naturally in front of the upper torso while holding the sword horizontally/diagonally, flowing twin tails and costume ribbons creating a dynamic silhouette, one leg relaxed and slightly crossed. Do not copy its white advertisement layout, typography, logo, product base, or text.
+- Images 2–5 are CHARACTER-APPEARANCE REFERENCES from one Keqing reference set: preserve the same fictional Keqing character identity, adult anime face, violet eyes, lavender twin-tail hair, cat-ear-like hair tufts, official purple-and-lavender costume design, gloves, dark translucent stockings, high heels, body proportions, costume ornaments and color palette. Ignore the MMD stage, framing, video overlay, logos, watermarks and text.
+
+SCENE / BACKDROP
+A premium, richly detailed Liyue-inspired jade rooftop garden at blue hour after light rain, elegant dark wooden pavilion architecture, distant layered mountains and city lights, warm carved lanterns, wet stone and jade surfaces with subtle reflections, restrained violet Electro motes and thin arcs around the sword, luxurious environmental depth without clutter.
+
+SUBJECT
+One adult female Keqing character only, full body from hair tips to both shoes fully visible, standing in the referenced official figurine sword pose. Keep the facial design, hair silhouette, costume pattern and accessories faithful to the character references. Confident, poised expression; anatomically coherent hands naturally gripping the sword.
+
+RENDERING / LIGHT
+High-end modern 3D anime game cinematic CG blended with refined MMD polish and precise collectible-figure sculpting, but she is a living character rather than a plastic toy. Natural matte skin with soft subsurface scattering, clean anime facial planes, detailed eyes, individually readable hair strands and fabric layers, restrained material highlights. Cinematic soft key light, cool violet rim light, warm lantern fill, controlled contrast, realistic wet-ground reflections, sharp subject with nuanced depth of field and a detailed readable background.
+
+COMPOSITION
+True 16:9 horizontal wallpaper, cinematic medium-wide full-body framing, character dominant near center with balanced negative space, camera near waist height, no cropping of hair, sword, costume ribbons, hands, legs or feet.
+
+CONSTRAINTS
+SFW. No extra people, no duplicate limbs, no malformed hands, no extra fingers, no distorted sword, no plastic doll skin, no waxy face, no overexposed highlights, no flat lighting, no excessive blur, no excessive bokeh, no product pedestal, no advertisement border, no text, no logos, no watermark, no signature.
+
+REFERENCE FILES USED
+1. C:\Users\Administrator\AppData\Local\Temp\codex-clipboard-d3508543-4490-4b10-b0c5-6493ebafebff.png
+2. D:\data\photos\刻晴\屏幕截图(1).png
+3. D:\data\photos\刻晴\屏幕截图(3).png
+4. D:\data\photos\刻晴\屏幕截图(6).png
+5. D:\data\photos\刻晴\屏幕截图(7).png

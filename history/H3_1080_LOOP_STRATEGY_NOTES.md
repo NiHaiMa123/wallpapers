@@ -142,8 +142,8 @@ ComfyUI 0.34 自带原生插帧，无需第三方节点：
 
 - `scripts/loop_common.py`：`playback_indices(n, "mirror")` → `0..N-1` 接 `N-2..1`。`tests/test_mirror_playback.py` 锁死 73→144 的转折点与尾帧不含 0。
 - `scripts/encode_h3_frame_sequence.py --loop-mode mirror`：对已有 PNG 序列做索引算术后流式编码，仍是一帧一打开，不把 144 帧驻留内存。默认 `linear`，1080p 流式生成器行为不变。
-- `scripts/build_seamless_wallpaper.py --mode mirror`：给 576p 草稿预览用。默认仍是 `crossfade`，4K 旧链路不受影响。
-- `scripts/screen_h3_loop_candidates.py --loop-mode mirror`（现为默认）：`loop_score` 不再计入 `endpoint_full_mad`；改为惩罚水晶带运动、地面花瓣位移、末帧速度比、眨眼不足、眨眼落在边界、末帧眼睛未睁。`--loop-mode return` 保留旧判据。
+- `scripts/experimental/build_seamless_wallpaper.py --mode mirror`：给 576p 草稿预览用。默认仍是 `crossfade`，4K 旧链路不受影响。
+- `scripts/experimental/screen_h3_loop_candidates.py --loop-mode mirror`（现为默认）：`loop_score` 不再计入 `endpoint_full_mad`；改为惩罚水晶带运动、地面花瓣位移、末帧速度比、眨眼不足、眨眼落在边界、末帧眼睛未睁。`--loop-mode return` 保留旧判据。
 - `prompts/keqing_h3_1080_loop_anchored_en.txt` 已改成「单向走到极值」：首帧静止睁眼、末帧所有运动元素同时处于极值、眨眼在约 40%、花瓣禁止下落、水晶带仍是嵌入地面的刚性玻璃。
 
 已用 `1080_stream_73` 的 PNG 目录验证编码器（**不是母版**，缺陷全部还在）：

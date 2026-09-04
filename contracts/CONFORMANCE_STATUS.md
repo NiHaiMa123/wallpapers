@@ -121,10 +121,10 @@ Contract：`03-lowres-i2v-seed.md`, `04-native-1080p-73f.md`
 
 以下旧结论目前 **不是实现 bug，而是历史证据**：
 
-- `plans/H3_1080_LOOP_STRATEGY_NOTES.md` 的“镜像回放已定案”；
+- `history/H3_1080_LOOP_STRATEGY_NOTES.md` 的“镜像回放已定案”；
 - 旧 crossfade / 61-frame / 119-loop validator 方案；
 - `plan2.md` 的 equalize/remap 定稿链；
-- `plans/VALIDATION_HISTORY.md` 中不同日期的 RAM 边界/默认值。
+- `history/VALIDATION_HISTORY.md` 中不同日期的 RAM 边界/默认值。
 
 这些文档已经被 `AGENTS.md` 明确降级为 NON-NORMATIVE。它们可以为 Contract Review 提供证据，但不得直接恢复为当前生产规则。
 
