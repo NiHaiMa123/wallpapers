@@ -1,3 +1,6 @@
+> [!WARNING]
+> **NON-NORMATIVE HISTORICAL EVIDENCE.** 本文件记录 2026-08-30 的 1080p 逐帧输出/流式编码实验与当时环境。它可以为当前 `contracts/04-native-1080p-73f.md`、`contracts/01-runtime.md` 和实现回归提供证据，但本文中的端口、HMNSFW 0.5、档位“推荐/边界”、编号原点和下一步均不自动成为当前规范。当前生产目标以 `AGENTS.md`、`pipeline/`、`contracts/` 为准；发现有价值的新约束时提交 `CONTRACT_REVIEW_REQUIRED` 给主 Agent。
+
 # MiniMax H3 原生 1080p 逐帧输出与流式编码实施计划
 
 **创建日期：** 2026-08-30  
