@@ -1,76 +1,57 @@
 # 05 全帧导出与人工留帧
 
-本阶段解决 MiniMax H3 首尾循环常见的末尾降速/冻结问题。原则是：**完整导出证据，自动分析辅助，用户决定最终保留帧。**
+本阶段解决 MiniMax H3 正式 take 的尾部降速/冻结问题。核心原则：**canonical 全帧证据 + 自动分析辅助 + 用户决定 keep list**。
+
+执行契约：`../contracts/05-frame-sequence-selection.md`
 
 ## 输入
 
-- Gate C 选定的 `1920×1080 / 73f` take。
+- Gate C 选定的正式 take；
+- 与该 take 同 run 生成的 canonical PNG frame sequence；
+- 可选 MAD/光流/速度分析。
 
-## 全帧导出
+## 阶段动作
 
-1. 将视频完整导出为连续编号图片。
-2. 不跳帧、不重排、不覆盖旧目录。
-3. 建议统一目录：
+1. 校验 canonical frame sequence 完整性和 manifest。
+2. 向用户展示完整帧列；所有 human-facing 帧号统一按 Contract 的 1-based 规则。
+3. Agent 可以标记尾部慢区、速度尖峰和 wrap 风险，但不自动形成“批准的” keep list。
+4. 进入 Gate D。
 
-```text
-outputs/images/<take-id>/keep_001.png
-...
-outputs/images/<take-id>/keep_073.png
-```
+如果当前 take 没有 canonical PNG 序列，只能从 MP4 拆帧，必须明确标记 `decoded_from_video`，不能把它描述为等价的无损主路径。
 
-4. 保留原始视频和完整 73 帧目录作为证据。
-
-## 自动分析仅作辅助
-
-Agent 可以运行 MAD、光流、motion uniformity 等工具，标出：
-
-- 尾部连续低运动区；
-- 明显速度尖峰；
-- 末帧到首帧变化；
-- 可能值得加速/删除的区间。
-
-但分析结果只用于说明，不直接产生最终 keep list。
-
-## Gate D：人工决定保留帧
-
-向用户提供完整帧列，并在有帮助时同时提供速度分析结果。
-
-状态进入：
+## Gate D
 
 ```text
 WAITING_FOR_USER_SELECTION
 ```
 
-用户可以用以下任一方式指定：
+用户可以给出保留范围、删除范围或明确帧号列表。Agent 负责把它规范化成 Contract 要求的 1-based human selection manifest。
 
-```text
-保留 1-63,73
-删除 64-72
-保留 1,3,5,...
-按明确帧号列表保留
-```
+示意：
 
-Agent 必须逐字落实用户的留删决定，不因为自动指标“看起来更合理”而自行增加或删除帧。
-
-记录：
-
-```text
-source_take:
-all_frames_dir:
+```yaml
+numbering: 1-based
 keep_frames:
 drop_frames:
-analysis_reference:
-user_selection_notes:
+source_frame_count:
+approved_by_user: true
 status: SELECTED
 ```
 
 ## 重建前检查
 
-- keep list 不得越界；
-- 不改变保留帧原始顺序；
-- 默认保留 LoopLock 锚定末帧，除非用户明确要求其他方案；
-- 发现保留结果会造成明显人物/道具位置跳跃时要警告用户，但不要擅自改变选择。
+只按 `contracts/05-frame-sequence-selection.md` 校验：越界、重叠、顺序、编号原点和用户批准状态。
+
+如果用户选择会造成明显位置/语义跳跃，Agent 应警告并说明影响，但不得擅自修改列表。
+
+## 本阶段不负责
+
+- 自动 equalize；
+- 自动 tail compression；
+- RIFE；
+- 超分；
+- 自动修改用户 keep list。
 
 ## 晋级
 
-Gate D 完成后，将 keep list 交给 `06-interpolation-and-upscale.md`。
+Gate D 完成 -> `06-interpolation-and-upscale.md`。
