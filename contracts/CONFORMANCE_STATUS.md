@@ -117,6 +117,26 @@ Contract：`03-lowres-i2v-seed.md`, `04-native-1080p-73f.md`
 - 主 Agent根据实际跨语义漂移决定是否增加标准低分辨率 loop-confirmation；
 - 不允许 subagent把 Turbo 粗筛结果写成“正式循环 seed 已验证”。
 
+### C-010 Runtime machine-path portability — PARTIAL
+
+Contract：`01-runtime.md`
+
+现状：
+
+- machine-local config 模板与 ignore 机制已建立（`config/comfyui_shared_models.example.yaml` + `config/*.local.yaml`），config README 正确说明“机器路径不是规范”；
+- 生产 runner 尚未统一消费 machine-local config；
+- 部分公共 runner/helper 仍带当前机器绝对路径默认值（如 `scripts/h3_input_common.ps1` 的 `$H3DefaultComfyInputDir = 'D:\Comfy-Desktop\ComfyUI-Shared\input'`，以及部分 runner 中的本机 ComfyUI/Python 绝对路径）；
+- 显式 CLI 参数有时可以覆盖路径，但 fresh clone 换机器仍不能只靠 config 完成无歧义运行。
+
+目标：
+
+未来由 subagent 建立统一 runtime resolver，解析优先级由后续实现任务设计，但必须满足：
+
+- 不把 `D:\Comfy-Desktop` 当永久默认事实；
+- run report 记录实际 resolved path；
+- 换机器不需要修改 Contract；
+- 不允许静默猜错 ComfyUI 实例（保持 `01-runtime.md` 的“实际读取版本”要求）。
+
 ## 历史文档冲突已被规范层隔离
 
 以下旧结论目前 **不是实现 bug，而是历史证据**：

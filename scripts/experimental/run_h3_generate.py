@@ -24,14 +24,16 @@ def main():
     parser.add_argument("--lora-strength", type=float, default=0.5)
     parser.add_argument("--loop-lock", action="store_true")
     parser.add_argument("--silent", action="store_true")
-    parser.add_argument("--prompt-file", default=r".\prompts\MINIMAX_H3_LIVE2D_CRYSTAL_LOCK_LOOP_PROMPT_V7_BODY_ONLY.md")
+    parser.add_argument("--prompt-file", default=r".\history\prompts\MINIMAX_H3_LIVE2D_CRYSTAL_LOCK_LOOP_PROMPT_V7_BODY_ONLY.md")
     parser.add_argument("--input-image", default="keqing_gpt_reference_16x9.png")
     parser.add_argument("--report", default="")
     parser.add_argument("--api", default="http://127.0.0.1:8188")
     parser.add_argument("--abort-ram-gib", type=float, default=31.0)
     args = parser.parse_args()
 
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # This file lives in scripts/experimental/, so the repo root is three
+    # levels up from __file__ (experimental -> scripts -> repo root).
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     workflow_path = os.path.join(project_root, "workflows", "minimax_h3_live2d_figurine_api.json")
     profiles_path = os.path.join(project_root, "presets", "minimax_h3_live2d_profiles.json")
 

@@ -30,8 +30,11 @@
 
 ## 依赖说明
 
-- `build_seamless_wallpaper.py` 通过 `sys.path` 引用同仓库 `scripts/loop_common.py`；从本目录运行时需确保 `scripts/` 在 `PYTHONPATH` 中（例如 `cd scripts` 后 `python experimental/build_seamless_wallpaper.py`），或直接阅读其源码作为重建参考。
-- 其余脚本无跨目录 import，可独立阅读。
+- `build_seamless_wallpaper.py` 自行把 `scripts/`（本目录上一级）加入 `sys.path` 后 import `scripts/loop_common.py`，任意工作目录下可直接运行；
+- `run_h3_generate.py` 读取仓库根的 `workflows/minimax_h3_live2d_figurine_api.json` 与 `presets/minimax_h3_live2d_profiles.json`，默认 prompt 指向 `history/prompts/` 下的历史 V7 模板；
+- `run_h3_window_probe.py` 把 artifacts 写到仓库根 `artifacts/loop_vfi_probe/`（其 `COMFY_OUTPUT` 常量仍是当时本机的 ComfyUI 输出目录，属于历史机器路径，换机需显式修改）；
+- `run_krea2_identity_edit.ps1`、`build_keqing_vfi_keyframes.py` 内联构造 payload / 输入，不依赖仓库相对路径；
+- 其余脚本无跨目录 import 或仓库相对路径，可独立运行。
 
 ## 为什么保留
 

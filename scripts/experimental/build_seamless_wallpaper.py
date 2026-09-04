@@ -17,7 +17,11 @@ import sys
 import av
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# This script lives in scripts/experimental/, while loop_common.py stays in
+# scripts/. Resolve the production scripts dir relative to this file so the
+# import works from any working directory.
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SCRIPTS_DIR))
 from loop_common import playback_indices  # noqa: E402
 
 

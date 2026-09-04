@@ -103,7 +103,7 @@ MiniMax H3 FL2VA 在 RTX 5080 16GB + 32GB RAM 上可用，最适合的路线是�
 
 HMNSFW V2.5 来自 `Hearmeman/minimax-h3-loras`，模型头包含 200 个 `diffusion_model.blocks.*.lora_A/B` 张量，元数据为 `ss_base_model_version=minimax_h3`。它用原生 `LoraLoaderModelOnly` 加载，不需要专用节点。作者建议 0.5–0.9，但在量化模型上应从低端开始逐 seed A/B，不能把作者模型卡中的训练数据与效果声明当作独立基准。
 
-Turbo 节点发布版 v1.2.3、commit `4274783a23afcfdbea3b4876cb79effd6c510785` 已审计；没有额外依赖、网络下载、子进程或动态执行行为。审计副本保留在 `vendor_audit/ComfyUI-MiniMax-H3-Turbo`。
+Turbo 节点发布版 v1.2.3、commit `4274783a23afcfdbea3b4876cb79effd6c510785` 已审计；没有额外依赖、网络下载、子进程或动态执行行为。当时本机曾保留审计副本于 `vendor_audit/ComfyUI-MiniMax-H3-Turbo`（上游 `Larryvrh/ComfyUI-MiniMax-H3-Turbo`）；该第三方源码副本不纳入 Git，fresh clone 中不存在。
 
 ## 5. 基线、LoRA 与微动画固化（步骤 5–7）
 

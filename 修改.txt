@@ -1,0 +1,466 @@
+继续处理当前 `wallpapers` 仓库。这次不是再做目录重构，而是对上一轮 `plans/ -> history/`、`scripts/experimental/`、`workflows/experimental/` 整理做一次 **runtime path regression 修复 + conformance 补登记**。
+
+先读取：
+
+1. `AGENTS.md`
+2. `contracts/README.md`
+3. `contracts/00-governance.md`
+4. `contracts/01-runtime.md`
+5. `contracts/CONFORMANCE_STATUS.md`
+6. `history/README.md`
+7. `scripts/experimental/README.md`
+8. `workflows/experimental/README.md`
+
+本次严格遵守：
+
+* 不修改生产 pipeline 语义；
+* 不修改正式 Contract 的目标行为；
+* 不顺手修 C-001~C-009；
+* 不再进行大规模目录搬迁；
+* 只修“文件移动导致 experimental/history 行为或引用失效”的问题；
+* 如果发现需要改变正式 runtime Contract，先登记/报告，不自行改 Contract。
+
+## 1. 全面检查 experimental 文件移动后的路径回归
+
+上一轮只做了 Python 语法检查，但这不足以证明移动后仍可运行。
+
+重点扫描：
+
+```text
+scripts/experimental/**
+workflows/experimental/**
+```
+
+检查所有与文件位置有关的逻辑，包括但不限于：
+
+```text
+__file__
+Path(__file__)
+parents[n]
+.parent
+dirname(...)
+PSScriptRoot
+Split-Path
+../
+../../
+
+scripts/
+workflows/
+presets/
+prompts/
+history/
+artifacts/
+outputs/
+reports/
+inputs/
+config/
+```
+
+目标：
+
+> experimental 文件移动前如果可以按其历史用法执行，移动后不能因为 repo-root 推导、相对路径或 import 位置变化而直接失效。
+
+### 已确认的三个问题必须修复
+
+#### A. `scripts/experimental/build_seamless_wallpaper.py`
+
+当前代码类似：
+
+```python
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from loop_common import playback_indices
+```
+
+移动后会在 `scripts/experimental/` 找 `loop_common.py`，但实际文件在：
+
+```text
+scripts/loop_common.py
+```
+
+请修为对当前目录结构稳定的 repo/script-root 推导方式。
+
+不要通过要求用户手工设置 `PYTHONPATH` 来掩盖代码路径问题。
+
+同时更新 `scripts/experimental/README.md` 中错误或过时的依赖说明。
+
+---
+
+#### B. `scripts/experimental/run_h3_generate.py`
+
+它原来位于 `scripts/`，移动到 `scripts/experimental/` 后，旧的：
+
+```python
+dirname(dirname(__file__))
+```
+
+或等价逻辑已经不能得到仓库根。
+
+当前会错误解析：
+
+```text
+scripts/workflows/
+scripts/presets/
+```
+
+而真正路径在仓库根：
+
+```text
+workflows/
+presets/
+```
+
+请修正 repo root 推导。
+
+同时检查它的默认 prompt。
+
+原默认类似：
+
+```text
+prompts/MINIMAX_H3_LIVE2D_CRYSTAL_LOCK_LOOP_PROMPT_V7_BODY_ONLY.md
+```
+
+该文件目前已经进入：
+
+```text
+history/prompts/
+```
+
+因为此脚本本身已经是 experimental/history-era 工具，可以：
+
+* 显式指向历史 prompt 的新路径；或
+* 去掉这个易失效的默认，要求显式传入；
+* 选择哪种方式以最小改动和历史可复现性为准。
+
+不要把历史 V7 prompt 重新搬回生产 `prompts/`。
+
+---
+
+#### C. `scripts/experimental/run_h3_window_probe.py`
+
+当前类似：
+
+```python
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+```
+
+移动前这可能是仓库根，移动后已经变成：
+
+```text
+repo/scripts
+```
+
+结果例如：
+
+```text
+PROJECT_ROOT / "artifacts"
+```
+
+会变成：
+
+```text
+scripts/artifacts/
+```
+
+请修为真正仓库根。
+
+同时检查其中所有：
+
+```text
+artifact_dir
+output path
+workflow/report path
+```
+
+是否受移动影响。
+
+---
+
+## 2. 不要只修这三个，扫描全部 experimental
+
+检查全部 18 个 experimental scripts。
+
+特别留意：
+
+* Python 中自己推导 project root；
+* PowerShell 中依赖 `$PSScriptRoot` 的相对路径；
+* 调用 sibling/root scripts；
+* 打开 workflow/preset/prompt；
+* 写 artifacts/reports/outputs；
+* import `scripts/` 根模块；
+* subprocess 调用相对脚本；
+* 硬编码旧 prompt 路径；
+* 已移动 workflow 的旧路径。
+
+如果文件完全独立，不需要改。
+
+### 验证要求
+
+不能只做：
+
+```text
+py_compile
+JSON parse
+```
+
+还需要尽可能做 **静态 path resolution smoke test**。
+
+至少证明：
+
+```text
+calculated repo root == actual repo root
+referenced tracked file exists
+output root resolves to intended repository/runtime location
+imports resolve
+```
+
+不要实际运行高成本 H3/ComfyUI 生成任务。
+
+---
+
+## 3. 修复 `history/local-notes/` 空目录问题
+
+`history/README.md` 当前列出了：
+
+```text
+history/local-notes/
+```
+
+但 Git 不跟踪空目录，因此 fresh clone 中这个目录不存在。
+
+请选择以下一种，优先第一种：
+
+### 方案 A
+
+新增：
+
+```text
+history/local-notes/README.md
+```
+
+内容简短说明：
+
+* 用于以后收纳一次性但值得保留的本地历史笔记；
+* NON-NORMATIVE；
+* 当前可能没有其他文件。
+
+### 方案 B
+
+如果实际上不需要这个目录，就从 `history/README.md` 删除该项。
+
+不要使用只有本地存在的空目录作为仓库结构的一部分。
+
+---
+
+## 4. 修正 `vendor_audit/` 的历史表述
+
+`.gitignore` 仍然忽略：
+
+```text
+vendor_audit/
+```
+
+这是允许的，因为它是本地第三方审计副本。
+
+但 `history/VALIDATION_HISTORY.md` 中仍有类似：
+
+```text
+审计副本保留在 vendor_audit/ComfyUI-MiniMax-H3-Turbo
+```
+
+这对 fresh clone 来说不成立。
+
+请把措辞改成历史事实，例如：
+
+```text
+当时本机曾保留审计副本于 vendor_audit/...
+该第三方源码副本不纳入 Git。
+审计对象版本/commit 为 ...
+```
+
+不要把整个 vendor repo 纳入当前仓库。
+
+如觉得有必要，可以新增：
+
+```text
+history/vendor-audits/minimax-h3-turbo.md
+```
+
+只保存：
+
+```text
+upstream
+commit
+review date
+审计结论
+关键 hash / version
+```
+
+但这不是强制；优先最小改动。
+
+---
+
+## 5. 在 `CONFORMANCE_STATUS.md` 新增 C-010
+
+新增：
+
+```text
+C-010 Runtime machine-path portability — PARTIAL
+```
+
+背景：
+
+目前已经有：
+
+```text
+config/comfyui_shared_models.example.yaml
+config/*.local.yaml
+```
+
+并且 config README 正确说明“机器路径不是规范”。
+
+但当前生产实现并没有真正消费这个 local config，而且生产公共脚本仍存在类似：
+
+```powershell
+$H3DefaultComfyInputDir =
+'D:\Comfy-Desktop\ComfyUI-Shared\input'
+```
+
+以及部分 runner 中存在本机 ComfyUI/Python 绝对路径。
+
+因此当前状态应该诚实登记为：
+
+```text
+PARTIAL
+```
+
+建议内容：
+
+### Contract
+
+`contracts/01-runtime.md`
+
+### 现状
+
+* machine-local config 模板与 ignore 机制已建立；
+* 生产 runner 尚未统一消费 machine-local config；
+* 部分公共 runner/helper 仍带当前机器绝对路径默认值；
+* 显式参数有时可以覆盖路径，但 fresh clone 换机器仍不能只靠 config 完成无歧义运行。
+
+### 目标
+
+未来由 subagent 建立统一 runtime resolver，例如允许：
+
+```text
+explicit CLI arg
+-> machine-local config
+-> environment/discovery
+-> 明确失败
+```
+
+具体优先级可以由后续实现任务设计，但必须满足：
+
+* 不把 D:\Comfy-Desktop 当永久默认事实；
+* run report 记录实际 resolved path；
+* 换机器不需要修改 Contract；
+* 不允许静默猜错 ComfyUI 实例。
+
+### 当前本次任务
+
+只登记 C-010。
+
+不要顺手重构全部生产 runner。
+
+---
+
+## 6. 检查 `config/README.md` 的措辞
+
+现在 config README 不能让用户/Agent误以为：
+
+```text
+只复制 example -> local.yaml
+就已经会被所有生产 runner 自动使用
+```
+
+如果当前 runner 没有消费它，请明确写：
+
+```text
+当前该文件主要作为 machine-local deployment declaration；
+并非所有现有 runner 已接入统一读取。
+具体实现状态见 contracts/CONFORMANCE_STATUS.md C-010。
+```
+
+不要虚构 config 已经是 runtime source。
+
+---
+
+## 7. 最终审计
+
+完成后至少检查：
+
+```text
+git status
+git diff --check
+```
+
+并检查：
+
+### experimental path audit
+
+所有被移动 experimental 文件中的：
+
+```text
+repo root
+script root
+imports
+workflow paths
+preset paths
+prompt paths
+artifact/output paths
+```
+
+### tracked-reference audit
+
+确认这些路径存在：
+
+```text
+history/local-notes/
+history/prompts/
+scripts/experimental/
+workflows/experimental/
+config/comfyui_shared_models.example.yaml
+contracts/CONFORMANCE_STATUS.md
+```
+
+### 不应发生的改动
+
+确认：
+
+```text
+pipeline production semantics unchanged
+contracts 00-09 normative semantics unchanged
+production scripts behavior unchanged
+production workflows unchanged
+presets unchanged
+tests unchanged
+```
+
+除了 `CONFORMANCE_STATUS.md` 增加 C-010、config/history/experimental 的必要说明和 experimental 自身路径修复外，不要扩大 diff。
+
+## 最终汇报格式
+
+完成后按以下格式回复：
+
+```text
+1. 找到多少个 experimental path regression
+2. 分别修了哪些文件、问题是什么
+3. 哪些文件检查后确认无需修改
+4. history/local-notes 如何处理
+5. vendor_audit 表述如何修正
+6. C-010 登记内容
+7. config/README 是否补充“尚未被所有 runner 消费”
+8. path smoke audit 结果
+9. git diff --check 结果
+10. 是否发现新的 CONTRACT_REVIEW_REQUIRED
+```
+
+如果发现某个 experimental 文件要恢复运行必须改变当前正式 Contract，不要修改 Contract，只报告。

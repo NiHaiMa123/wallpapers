@@ -24,7 +24,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# This file lives in scripts/experimental/, so the repo root is two levels up
+# from __file__ (experimental -> scripts -> repo root).
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 COMFY_OUTPUT = Path(r"D:\Comfy-Desktop\ComfyUI-Shared\output")
 WINDOW_LENGTH = 22
 CONTEXT_LENGTH = 5

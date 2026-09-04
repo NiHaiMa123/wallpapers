@@ -17,3 +17,7 @@
 - 本目录任何路径都只是本机部署状态，不是永久规范；
 - 换机器时改 `*.local.yaml`，不改 Contract、不改脚本默认值；
 - 端口、安装路径、某台机器的峰值内存属于环境事实，不得升级为全局门槛。
+
+## 当前实现状态
+
+**注意**：当前该文件主要作为 machine-local deployment declaration；**并非所有现有 runner 已接入统一读取**——多数生产脚本仍以显式 CLI 参数或本机默认值运行。具体差距见 [`contracts/CONFORMANCE_STATUS.md`](../contracts/CONFORMANCE_STATUS.md) 的 C-010。不要假设复制 `example -> local.yaml` 后就会被自动使用。
