@@ -1,3 +1,6 @@
+> [!WARNING]
+> **NON-NORMATIVE HISTORICAL EVIDENCE.** 本文件记录 2026-08-30 当时把“镜像回放”作为默认循环方案的决策，现已被当前 `AGENTS.md`、`pipeline/` 与 `contracts/` 取代。当前正式循环语义见 `contracts/04-native-1080p-73f.md`：`same_image_first_last_anchor`，尾部降速由 Gate D 的人工帧选择处理。本文中的“已定案/锁定/下一步”均只代表当时状态。若历史证据说明当前 Contract 有问题，应提交 `CONTRACT_REVIEW_REQUIRED`，不得直接恢复镜像路线为默认。
+
 # H3 1080p 循环壁纸：已定案为镜像回放
 
 **创建日期：** 2026-08-30
