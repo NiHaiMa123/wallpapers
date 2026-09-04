@@ -1,11 +1,14 @@
+> [!WARNING]
+> **NON-NORMATIVE HISTORICAL EVIDENCE.** 本文件记录 2026-08-29~30 的环境、实验、当时默认、失败路线与验证结果。当前生产规范只以 `AGENTS.md`、`pipeline/`、`contracts/` 为准。本文中的 30.5GiB/31.0GiB、56f/73f、HMNSFW 0.5、crossfade、镜像回放、61f/119-loop validator、8188/8189 等结论都只能作为历史证据；如需提升为当前规范，必须走 `CONTRACT_REVIEW_REQUIRED` 并由主 Agent 作为 Spec Owner 审核。
+
 # MiniMax H3 本地工作流验证历史
 
 **验证日期：** 2026-08-29 至 2026-08-30  
 **目标设备：** GeForce RTX 5080 16GB VRAM + 32GB 系统内存  
 **用途：** 本地、封闭环境中的短视频、动态壁纸和技术验证  
-**当前操作手册：** [README.md](README.md)
+**当前规范入口：** [AGENTS.md](AGENTS.md)｜[pipeline/README.md](pipeline/README.md)｜[contracts/README.md](contracts/README.md)
 
-本文合并原可行性调研、实施计划和步骤 7–21 的阶段报告。它保留可追溯的环境、模型、配置、实测、失败路线和待办，但不再保留已经完成的过程性“下一步计划”。运行命令和当前默认值以 `README.md`、`presets/` 与脚本参数为准。
+本文合并原可行性调研、实施计划和步骤 7–21 的阶段报告。它保留可追溯的环境、模型、配置、实测、失败路线和当时待办。本文中的运行命令、默认值、档位与“定案”只代表对应历史阶段；当前生产行为不得从本文直接推导，必须回到 normative MD。
 
 ## 1. 总结
 
