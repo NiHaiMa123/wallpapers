@@ -1,47 +1,49 @@
 # 02 文生图与人工选图
 
-本阶段把 Director Brief 转成可执行 T2I prompt，生成静态候选，并在用户选定后锁定后续 I2V 输入图。
+本阶段负责把 Director Brief 转成静态候选，并完成 Gate A。
 
-## 目标
+执行契约：`../contracts/02-t2i.md`
 
-不是单纯生成一张漂亮图，而是生成 **漂亮且适合作为 H3 I2V 首帧** 的静态图。
+## 输入
 
-## Agent 动作
+- `01` 形成的 Director Brief；
+- 当前 T2I prompt；
+- 当前候选数量/seed 策略。
 
-1. 根据 `01` 的 Director Brief 写 T2I prompt。
-2. prompt 必须明确：主体、姿势、构图、镜头、光线、场景、材质和禁止变化。
-3. 优先保证：
-   - 脸、手、肢体和道具结构清晰；
-   - 16:9 构图稳定；
-   - 软质可动区域轮廓清楚；
-   - 硬质区域不易被后续视频重构；
-   - 后续动作有足够空间。
-4. 执行 T2I 抽卡并保存候选。
-5. Agent 可以先淘汰明显结构错误候选，但不能替用户完成最终审美选择。
+## 阶段动作
 
-## Gate A：人工选图
+1. 从 Director Brief 派生 T2I prompt。
+2. 按 `contracts/02-t2i.md` 生成可追溯候选。
+3. Agent 淘汰明显结构错误，并说明构图、姿势和 I2V 可执行性差异。
+4. 保留候选、prompt、seed、hash 和 Agent recommendation。
+5. 进入 Gate A，不自动晋级。
 
-状态必须进入：
+## Gate A
 
 ```text
 WAITING_FOR_USER_SELECTION
 ```
 
-向用户展示/提供候选后，由用户明确指定进入 I2V 的静态图。
+用户选择后记录：
 
-用户选定后记录：
-
-```text
+```yaml
 selected_image:
 selected_image_sha256:
 selection_notes:
 status: SELECTED
 ```
 
-## 不自动晋级的原因
+## 本阶段不重复定义
 
-静态图是后续全部 video seed 的共同起点。Agent 可以判断技术问题，但角色审美、姿势和画面偏好属于用户最终决定。
+- T2I 引擎具体节点；
+- 默认模型/LoRA；
+- 文件命名细节；
+- artifact/hash 规则。
+
+这些分别由 `contracts/02-t2i.md` 与 `contracts/09-artifacts-and-reports.md` 维护。
 
 ## 晋级
 
-用户完成 Gate A 后进入 `03-motion-and-seed-screen.md`。
+Gate A 完成 -> `03-motion-and-seed-screen.md`。
+
+如果当前实现无法满足 T2I Contract，不得自行降低 Contract；进入 `CONTRACT_REVIEW_REQUIRED`。
