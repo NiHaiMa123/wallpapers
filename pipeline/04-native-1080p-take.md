@@ -1,83 +1,60 @@
-# 04 原生 1080p / 73帧正式抽卡
+# 04 原生 1080p / 73f 正式抽卡
 
-本阶段在用户已经选定 video seed 后，运行高成本正式候选，并重新做人审。
+本阶段在 Gate B 已选定 video seed 后生成正式高成本 take，并完成 Gate C。
 
-## 目标规格
+执行契约：`../contracts/04-native-1080p-73f.md`
 
-正式候选目标为：
+## 输入
 
-```text
-1920×1080
-73 frames
-silent
-```
+- Gate A 选定静态图；
+- motion brief / motion prompt；
+- Gate B 选定 seed；
+- 当前 LoRA / loop intent；
+- runtime state。
 
-H3 内部空间尺寸如 runner 需要采用 `1920×1088 -> 1920×1080`，以当前已验证 runner / preset 为准，不在文档中硬编码替代实际脚本校验。
+## 阶段动作
 
-## 运行前
+1. 按 `contracts/01-runtime.md` 做执行前检查。
+2. 按 `contracts/04-native-1080p-73f.md` 生成正式 take。
+3. 同 seed 可以有多个正式 take，但每个都必须独立记录。
+4. Agent 对每个 take 做正常速度观看和结构初审。
+5. 保留正式 take 对应的 canonical PNG frame sequence；不要等 Gate C 后再从有损 MP4 重新拆一份作为唯一源。
+6. 向用户展示正式候选和差异说明。
 
-必须重新做 runtime preflight：
-
-- API 可达；
-- 实际 ComfyUI 版本正确，不只相信端口名；
-- 队列为空；
-- required nodes 存在；
-- 输入图路径/哈希正确；
-- Qwen、LLM 和其他 H3 已卸载；
-- RAM/VRAM 有足够余量；
-- 保留 runner 的 RAM 熔断；
-- 输出与报告使用唯一名称。
-
-## 正式抽卡
-
-锁定：
-
-- 用户选定静态图；
-- motion prompt；
-- 用户选定 video seed；
-- LoRA 和主要 motion 参数；
-- 固定镜头；
-- 目标 1080p / 73f profile。
-
-允许因为跨会话非确定性出现多个正式 take；这些 take 共享 seed，但仍需要分别审核。
-
-## Agent 初审
-
-每个 take 至少检查：
-
-- 身份、脸、瞳色、发型、服装；
-- 手、四肢、武器和硬质结构；
-- 镜头漂移和背景重构；
-- 动作幅度；
-- 明显尾部冻结/降速；
-- 是否存在值得进入逐帧人工剪选的成片。
-
-MAD / 光流 / motion uniformity 可用于标记风险，但这一阶段不能因为低画质 seed 之前通过就自动 PASS。
-
-## Gate C：人工选 1080p Take
-
-Agent 提供正式候选和简短差异说明，然后进入：
+## Gate C
 
 ```text
 WAITING_FOR_USER_SELECTION
 ```
 
-用户明确选定一个 take 后记录：
+用户选择后记录：
 
-```text
+```yaml
 selected_take:
-selected_seed:
-resolution: 1920x1080
-frames: 73
 selected_take_sha256:
+selected_frame_sequence_dir:
 selection_notes:
 status: SELECTED
 ```
 
 ## 淘汰规则
 
-身份、解剖、武器、硬质结构或镜头出现严重错误时直接淘汰该 take。不要依赖后续 RIFE、裁帧或超分修复语义/结构错误。
+身份、脸、手、肢体、武器、硬质结构或镜头出现严重生成错误时淘汰该 take；不交给后续 RIFE、删帧或超分修复。
+
+尾部降速/冻结如果主体质量仍可接受，不必在本阶段自动修；进入 Gate D 的人工帧选择。
+
+## 本阶段不重复定义
+
+- H3 内部空间尺寸；
+- visible output 尺寸转换；
+- frame-sequence 命名；
+- loop anchor 的实现方式；
+- runner/profile 名称。
+
+这些由 `contracts/04-native-1080p-73f.md` 定义语义，由实现自行满足。
 
 ## 晋级
 
-完成 Gate C 后进入 `05-frame-selection.md`。
+Gate C 完成 -> `05-frame-selection.md`。
+
+实现如果只有 `probe/smoke` 入口、无法满足正式 take Contract，属于 implementation conformance 问题，不得把实验 profile 语义反写进 pipeline。
