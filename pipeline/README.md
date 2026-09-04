@@ -1,76 +1,108 @@
 # MiniMax H3 Agent Pipeline
 
-本目录把根 `AGENTS.md` 的方向性规范拆成逐阶段可执行流程。每一阶段文档都回答四个问题：输入是什么、Agent 要做什么、必须产出什么、满足什么条件才能晋级。
+本目录定义当前生产流程。项目分为两层：
+
+- **Agent 层**：视觉导演、流程编排、人工 Gate 管理、技术 QC；
+- **ComfyUI / scripts 层**：按既定方案执行生成、插帧、超分和编码。
+
+当前目标不是全自动闭环，而是 **Agent 主导规划 + ComfyUI 执行 + 用户在关键审美节点做最终选择**。
 
 ## 主流程
 
 ```text
 00 执行契约
-  -> 01 需求盘点与路由
-  -> 02 环境预检
-  -> 03 输入图检查与提示词
-  -> 04 seed 筛选
-  -> 05 标准分级生成
-  -> 06 视觉验收
-  -> 07 原生首尾循环与技术验证
-  -> 08 交付与报告
+  -> 01 需求与导演方案
+  -> 02 文生图与人工选图
+  -> 03 动作导演与低画质 seed 筛选
+  -> 04 1080p / 73帧正式抽卡与人工选片
+  -> 05 全帧导出与人工留帧
+  -> 06 插帧、超分与成片重建
+  -> 07 最终 QC 与交付
 ```
 
-可选扩展：
+任一阶段发生环境、资源或生成故障时读取 `08-failure-recovery.md`。
 
-- 原生 1080p 或 4K：读取 `09-native-1080p-and-4k.md`。
-- 任一阶段失败：读取 `10-failure-recovery.md`。
+如果用户已提供并明确认可静态输入图，可跳过第 02 阶段，从第 03 阶段开始。
+
+## 为什么必须保留人工 Gate
+
+本项目已经确认两个不能靠低成本自动指标替代的问题：
+
+1. 低画质 seed 的运动倾向不能保证在原生 1080p 中完全复现；因此选 seed 后仍要重新抽 1080p take 并人工确认。
+2. MiniMax H3 首尾锚定视频常出现末尾降速/冻结；速度分析可以定位问题，但最终保留哪些帧由用户决定。
+
+所以当前生产流程包含四个不可自动越过的人工确认点：
+
+```text
+Gate A  选静态图
+Gate B  选 video seed
+Gate C  选 1080p take
+Gate D  选最终保留帧
+```
 
 ## 文档地图
 
-| 文档 | 何时读取 | 核心产物 |
+| 文档 | 作用 | 核心产物 |
 |---|---|---|
-| `00-operating-contract.md` | 每个任务开始时 | 工作模式、边界和完成契约 |
-| `01-intake-and-routing.md` | 收到新任务时 | 创意简报和唯一主路线 |
-| `02-preflight.md` | 任何实际运行前 | API、队列、版本、节点和资源结论 |
-| `03-input-and-prompt.md` | I2V/T2V 提示词设计时 | 输入证据和 UTF-8 prompt 文件 |
-| `04-seed-screening.md` | 首次生成或换主体后 | seed 排名和淘汰理由 |
-| `05-standard-render.md` | seed 晋级时 | draft、long_draft、final 及报告 |
-| `06-visual-review.md` | 每个生成阶段完成后 | PASS/REJECT/BLOCKED 结论 |
-| `07-loop-and-validation.md` | LoopLock final 完成后 | 直接循环 MP4 和 validator 结果 |
-| `08-delivery-and-reporting.md` | 最终交付前 | 文件索引、参数、缺陷和校验信息 |
-| `09-native-1080p-and-4k.md` | 用户明确需要高分辨率时 | 1080p 帧流或 4K 成片 |
-| `10-failure-recovery.md` | 发生缺节点、OOM、漂移等问题时 | 安全降级或回退动作 |
+| `00-operating-contract.md` | 全局执行规则 | 模式、权限、状态、人工 Gate 规则 |
+| `01-intake-and-director.md` | 把用户需求转成导演方案 | director brief、主路线 |
+| `02-t2i-and-image-selection.md` | 文生图和静态图确认 | T2I prompt、候选图、用户选图 |
+| `03-motion-and-seed-screen.md` | 设计动作并低成本找 seed | motion brief、seed 排名、用户选 seed |
+| `04-native-1080p-take.md` | 锁定 seed 后抽 1080p 73f | 正式候选、用户选 take |
+| `05-frame-selection.md` | 导出全部帧并人工定留删 | 全帧目录、最终 keep list |
+| `06-interpolation-and-upscale.md` | 按 keep list 重建、插帧、超分 | 最终高帧率/高分辨率候选 |
+| `07-final-qc-and-delivery.md` | 正常速度观看、技术 QC、交付 | 最终文件与复现记录 |
+| `08-failure-recovery.md` | 故障分类和回退 | 安全降级路线 |
 
-## 状态记录模板
+## 状态模板
 
-每次阶段切换至少保留以下字段：
+每次阶段切换至少记录：
 
 ```text
 stage:
-status: PASS | REJECT | BLOCKED
+status: PASS | PASS_WITH_WARNINGS | REJECT | BLOCKED | WAITING_FOR_USER_SELECTION | SELECTED
 input:
+director_brief:
 prompt_file:
 seed:
-profile:
+resolution:
+frames:
 api:
-lora_strength:
-silent:
 output:
 run_report:
 visual_findings:
 technical_findings:
+human_selection:
 next_stage:
 ```
 
-## 最短直接图生视频路线
-
-用户已有图片并要求跳过文生图时：
+## 最短已有图片路线
 
 ```text
-检查图片
-  -> 写 I2V 动作 prompt
-  -> API/队列/节点预检
-  -> Turbo seed 筛选；不可用则降级为小规模标准 draft 筛选
-  -> 标准 LoopLock draft
-  -> LoopLock long_draft
-  -> LoopLock final
-  -> 直接首尾循环正常速度观看
-  -> validator
+检查已认可输入图
+  -> 动作导演 / motion brief
+  -> 低画质 I2V seed 抽卡
+  -> 用户选 seed
+  -> 1920×1080 / 73f 正式抽卡
+  -> 用户选 take
+  -> 导出全部 73 帧
+  -> 用户选保留帧
+  -> 重建帧序列
+  -> RIFE 插帧
+  -> 超分
+  -> 最终 QC
   -> 交付
 ```
+
+## 重要原则
+
+- Agent 先做导演方案，再写 prompt；不是 prompt 扩写器。
+- 低画质阶段只负责找值得投资的 seed，不承担最终画质验收。
+- 1080p 阶段必须重新人工审核。
+- 全帧自动指标只提供参考；最终 keep list 由用户决定。
+- 身份、解剖、武器、硬质结构等生成错误通过重新抽卡解决，不交给 RIFE/超分修。
+- 最终顺序固定为：**人工留帧 -> 重建序列 -> 插帧 -> 超分 -> QC/交付**。
+
+## 旧文档
+
+旧版 `01-intake-and-routing.md` 到 `10-failure-recovery.md` 曾围绕 `draft -> long_draft -> final -> direct loop` 构建。它们保留为兼容入口，但不再定义当前主生产流程；打开后应按其中的迁移提示进入本 README 对应的新阶段文档。
