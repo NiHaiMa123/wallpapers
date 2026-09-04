@@ -1,78 +1,72 @@
 # 06 重建、插帧与超分
 
-本阶段只处理 Gate D 已确认的最终帧序列。顺序固定为：
+本阶段只处理 Gate D 已批准的最终帧序列。
+
+执行契约：
+
+- `../contracts/05-frame-sequence-selection.md`
+- `../contracts/06-interpolation.md`
+- `../contracts/07-upscale.md`
+- `../contracts/09-artifacts-and-reports.md`
+
+## 固定阶段顺序
 
 ```text
-人工 keep list
-  -> 重建选定帧序列
-  -> 插帧
-  -> 超分
-  -> 编码候选
+user-approved keep list
+  -> rebuild selected sequence
+  -> interpolation
+  -> upscale
+  -> final candidate
 ```
 
-## 1. 重建选定序列
+## 1. 重建
 
-- 只使用用户确认保留的帧；
-- 保持原始时间顺序；
-- 不覆盖原片、全帧目录或旧候选；
-- 输出唯一命名文件和结构化报告；
-- 记录有效帧数、目标 fps、时长和等效变速比。
-
-如果用户通过删帧主动加快尾段，必须如实记录，不把它描述为“原始 H3 运动已均匀”。
+- canonical source 是 Gate C take 的原始帧序列；
+- 只使用用户批准的 keep list；
+- 保持原始帧顺序；
+- 不自动恢复已删除帧；
+- 不在重建阶段自动 equalize/remap；
+- 生成 rebuilt-sequence manifest 和 hash。
 
 ## 2. 插帧
 
-优先使用仓库当前已验证的 RIFE / FrameInterpolate 路线。
+按 `contracts/06-interpolation.md`：
 
-循环视频插帧必须考虑末帧到首帧的边界，不只处理片内相邻帧。
+- target fps 必须显式记录；
+- 循环任务必须处理 wrap interval；
+- 默认只增加中间帧，不偷偷重新分配用户已批准的时间轴；
+- 自动 tail compression / arc-length remap / global speed factor 不是默认生产行为；
+- 正常速度观看检查鬼影、双影、假溶解和 micro-freeze。
 
-插帧候选必须检查：
-
-- 脸、眼睛、手、发丝是否鬼影；
-- 武器、电弧、细线结构是否分叉；
-- 接缝是否变成溶解而非真实运动；
-- 是否重新放大尾部降速或边界脉冲。
-
-RIFE 失败时回退到未插帧版本，不因为 FPS 更高强行晋级。
+如果需要额外自动变速，必须由主 Agent/用户明确批准为单独策略，不能因为现有脚本有默认参数就自动执行。
 
 ## 3. 超分
 
-只对已经通过插帧观看的候选做超分。
+按 `contracts/07-upscale.md`：
 
-默认优先时序安全路线；AI detail 路线只有在动态观看确认没有以下问题时才保留：
+- 保持插帧后已经批准的 fps；
+- 不在超分阶段再次插帧/删帧/重定时；
+- 默认 temporal-safe；
+- AI detail 只有在动态观看无新增时序伪影时才可晋级。
 
-- 纹理爬行；
-- halo；
-- 轮廓呼吸；
-- 边缘闪烁；
-- 色偏或亮度跳变。
+## 产物
 
-如果 AI 超分新增时序问题，回退到 `temporal_safe`。
+至少形成：
 
-## 4. 产物记录
-
-至少记录：
-
-```text
-source_take:
-keep_frames:
+```yaml
+human_selection_manifest:
 rebuilt_sequence:
-rebuilt_frame_count:
-interpolation_method:
-interpolated_fps:
+interpolation_report:
 interpolated_output:
-upscale_profile:
-upscaled_resolution:
+upscale_report:
 final_candidate:
 known_artifacts:
 ```
 
-## 不允许的修复
+## 实现冲突
 
-- 不用插帧修复脸崩、肢体错误、武器弯曲或背景重构；
-- 不用超分掩盖错误生成；
-- 不把未经用户确认的自动删帧重新偷偷加入主流程。
+如果当前 RIFE runner 会默认自动改尾段节奏，或当前 upscale preset 因固定 fps 拒绝已批准输入，不允许反过来修改 pipeline；应进入 `CONTRACT_REVIEW_REQUIRED`，由主 Agent判断修实现还是修改 Contract。
 
 ## 晋级
 
-完成候选后进入 `07-final-qc-and-delivery.md`。
+完成候选 -> `07-final-qc-and-delivery.md`。
